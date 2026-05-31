@@ -33,33 +33,40 @@ Vì lý do bảo mật, các file chứa khóa bí mật đã được đưa và
 
 ### Bước 2: Khởi chạy Frontend
 1. Mở thư mục `movie-app` bằng **Android Studio**.
-2. Bấm nút **Sync Project with Gradle Files** (Hình con voi ở góc trên bên phải) để nạp file cấu hình và thư viện.
+2. Bấm nút **Sync Project with Gradle Files** (Hình con voi ở góc trên bên phải) để nạp các thư viện cấu hình kiến trúc (Retrofit, Firebase, Lifecycle ViewModel, LiveData...).
 3. Chọn máy ảo hoặc cắm điện thoại thật để **Run**.
-4. *Lưu ý khi gọi API:* Nếu bạn dùng máy ảo Android, hãy dùng IP `http://10.0.2.2:8080/` làm Base URL để nó hiểu là đang gọi về Backend chạy ở Localhost máy tính.
+
+#### LƯU Ý ĐẶC BIỆT KHI CẤU HÌNH IP GỌI API (`RetrofitClient.java`):
+* **Nếu dùng máy ảo (Emulator):** Giữ nguyên `BASE_URL = "http://10.0.2.2:8080/"`.
+* **Nếu test bằng điện thoại thật (Physical Device):** 1. Bắt buộc điện thoại và máy tính phải **kết nối chung một mạng Wi-Fi**.
+  2. Mở `cmd` trên máy tính, gõ `ipconfig` để lấy số **IPv4 Address** (Ví dụ: `192.168.1.5`).
+  3. Sửa lại trong file thành: `BASE_URL = "http://192.168.1.5:8080/"`.
 
 ---
 
 ## BẢN ĐỒ CODE - VỊ TRÍ ĐỂ BẠN VIẾT TÍNH NĂNG TIẾP THEO
 
-Để dự án không bị xung đột (conflict) code và đi đúng cấu trúc Base đã dựng, bạn hãy vào đúng các package được quy hoạch sẵn dưới đây để viết tiếp tính năng:
+Để dự án không bị xung đột (conflict) code và đi đúng cấu trúc hệ thống, các thành viên tuyệt đối phải tuân thủ việc viết code đúng các package đã được quy hoạch sẵn:
 
 ### Tại Cục Backend (`movie-backend`)
 Mọi file code logic mới sẽ nằm trong package `com.movie_app_system.demo`:
 
-* **`controller/`**: Nơi bạn viết các **API Endpoints** (Định nghĩa đường dẫn URL để App Android gọi vào).
-* **`service/`**: Nơi bạn viết **Logic nghiệp vụ** xử lý (Ví dụ: logic đăng ký, đăng nhập, tìm kiếm phim,...).
-* **`repository/`**: Nơi viết code tương tác, truy vấn dữ liệu trực tiếp với Database Firebase (Firestore).
-* **`model/`**: Nơi định nghĩa các đối tượng dữ liệu (Entity/DTO) như `Movie.java`, `User.java`.
-* *Lưu ý:* Package `config/` đã cấu hình sẵn Spring Security (CORS) và FirebaseConfig, bạn không cần chỉnh sửa gì thêm ở đây.
+* **`controller/`**: Nơi viết các **API Endpoints** (Định nghĩa URL để App Android gọi vào).
+* **`service/`**: Nơi xử lý **Logic nghiệp vụ chính** (Đăng ký, đăng nhập, đồng bộ dữ liệu...).
+* **`repository/`**: Nơi tương tác, truy vấn dữ liệu trực tiếp với Database Firebase (Firestore).
+* **`dto/`**: Nơi định nghĩa các đối tượng đóng gói dữ liệu để xuất bản sang Frontend (`MovieResponse.java`, `MovieItem.java`, `Pagination.java`).
+* *Lưu ý:* Package `config/` đã cấu hình sẵn Spring Security (CORS) và FirebaseConfig, không chỉnh sửa nếu không có sự đồng ý của chủ project.
 
-### Tại Cục Frontend (`movie-app`)
+### Tại Cục Frontend (`movie-app`) - CHUẨN KIẾN TRÚC MVVM
 Mọi file Java điều khiển tính năng sẽ nằm trong package `com.example.movie_app`:
 
-* **`network/`**: Nơi chứa `RetrofitClient.java` và `ApiService.java`. Nếu cần gọi API GET/POST mới từ Backend, hãy vào file `ApiService` để khai báo hàm.
-* **`models/`**: Nơi tạo các class hứng dữ liệu JSON trả về từ Backend (Ví dụ: Class ánh xạ dữ liệu Phim, dữ liệu User).
-* **`adapters/`**: Nơi viết các class `MovieAdapter` để đổ danh sách dữ liệu phim lên thanh cuộn `RecyclerView`.
-* **Giao diện Java (Activities/Fragments)**: Code Java điều khiển màn hình (như xử lý bấm nút, chuyển màn hình) viết trực tiếp ở thư mục gốc của package này.
-* **Giao diện XML (`app/src/main/res/layout/`)**: Vào đây để thiết kế, vẽ giao diện (Ví dụ: `activity_main.xml`, `item_movie.xml`).
+* **`network/`**: Nơi quản lý kết nối mạng (`RetrofitClient.java`, `ApiService.java`). Mọi hàm gọi API (GET, POST...) từ Backend bắt buộc phải khai báo trong `ApiService`.
+* **`models/`**: Lớp **Model** chứa cấu trúc hứng dữ liệu JSON trả về từ Backend (Cặp song sinh khớp với DTO của Backend).
+* **`repository/`**: Lớp **Repository** chịu trách nhiệm xử lý nguồn dữ liệu (Gọi API kết nối Backend hoặc Firebase). Giao diện không được gọi trực tiếp lớp này.
+* **`viewmodel/`**: Lớp **ViewModel** giữ vai trò làm bộ não xử lý logic của màn hình, cung cấp dữ liệu dạng `LiveData` cho tầng hiển thị. **Cấm tuyệt đối import các thư viện UI hoặc Context vào đây.**
+* **`adapters/`**: Nơi viết các Adapter (như `MovieAdapter`) để đổ dữ liệu danh sách lên thanh cuộn `RecyclerView`.
+* **Tầng hiển thị (View)**: Các file `Activity/Fragment` viết trực tiếp tại package gốc. Chỉ làm nhiệm vụ xử lý giao diện (như bắt sự kiện click nút) và `observe` (lắng nghe) dữ liệu từ ViewModel bắn ra để hiển thị lên màn hình. **Cấm viết logic gọi mạng tại đây!**
+* **Giao diện XML (`app/src/main/res/layout/`)**: Nơi thiết kế vẽ giao diện app (Ví dụ: `activity_main.xml`, `item_movie.xml`).
 
 ---
 _Lưu ý trước khi code, nhớ `git pull` bản mới nhất về. Khi hoàn thành một tính năng, hãy commit kèm mô tả rõ ràng nhé! Chúc bạn code mượt không bug!_
