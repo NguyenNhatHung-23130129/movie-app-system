@@ -33,7 +33,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     public void setMovieList(List<MovieItem> movieList) {
         this.movieList = movieList;
-        notifyDataSetChanged(); // Yêu cầu danh sách vẽ lại giao diện mới
+        notifyDataSetChanged();
     }
 
     @NonNull
