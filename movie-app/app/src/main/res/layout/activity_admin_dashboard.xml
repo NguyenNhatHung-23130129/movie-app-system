@@ -676,7 +676,7 @@
                 android:layout_height="16dp"
                 android:contentDescription="Nav Action"
                 android:src="@android:drawable/ic_input_add"
-                app:shapeAppearanceOverlay="@style/cr9999" />
+                app:cardCornerRadius="999dp" />
         </LinearLayout>
 
         <LinearLayout
