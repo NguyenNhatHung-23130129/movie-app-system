@@ -1,16 +1,12 @@
 package movie_app_system.demo.controller;
 
+import com.google.gson.Gson;
 import movie_app_system.demo.api.KKPhimClient;
-import movie_app_system.demo.dto.GenreResponse;
-import movie_app_system.demo.dto.MovieCategoryResponse;
-import movie_app_system.demo.dto.MovieItem;
-import movie_app_system.demo.dto.MovieResponse;
+import movie_app_system.demo.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -101,6 +97,27 @@ public class MovieController {
             }
         } catch (IOException e) {
             return ResponseEntity.status(500).body("Lỗi kết nối mạng khi lấy thể loại: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/detail/{slug}")
+    public ResponseEntity<?> getMovieDetail(@PathVariable String slug) {
+        try {
+            Response<MovieDetailResponse> retrofitResponse = kkPhimClient.getMovieDetail(slug).execute();
+
+            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
+                MovieDetailResponse movieDetail = retrofitResponse.body();
+
+                if (!movieDetail.isStatus() || movieDetail.getMovie() == null) {
+                    return ResponseEntity.status(404).body("{\"message\": \"Không tìm thấy bộ phim này trên hệ thống!\"}");
+                }
+
+                return ResponseEntity.ok(movieDetail);
+            } else {
+                return ResponseEntity.status(404).body("{\"message\": \"Không tìm thấy thông tin phim.\"}");
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("{\"message\": \"Lỗi kết nối mạng: " + e.getMessage() + "\"}");
         }
     }
 }

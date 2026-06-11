@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.movie_app.models.Genre;
+import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.models.MovieResponse;
 import com.example.movie_app.network.ApiService;
 import com.example.movie_app.network.RetrofitClient;
@@ -91,5 +92,45 @@ public class MovieRepository {
         });
 
         return liveData;
+    }
+
+    public LiveData<MovieDetailResponse> getMovieDetail(String slug) {
+        MutableLiveData<MovieDetailResponse> data = new MutableLiveData<>();
+
+        apiService.getMovieDetail(slug).enqueue(new Callback<MovieDetailResponse>() {
+            @Override
+            public void onResponse(Call<MovieDetailResponse> call, Response<MovieDetailResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    data.setValue(response.body());
+                } else {
+                    data.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieDetailResponse> call, Throwable t) {
+                data.setValue(null);
+            }
+        });
+
+        return data;
+    }
+
+    public LiveData<MovieResponse> getMoviesByCategory(String slug, int page) {
+        MutableLiveData<MovieResponse> data = new MutableLiveData<>();
+        apiService.getMoviesByCategory(slug, page).enqueue(new Callback<MovieResponse>() {
+            @Override
+            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                if (response.isSuccessful()) {
+                    data.setValue(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieResponse> call, Throwable t) {
+                data.setValue(null);
+            }
+        });
+        return data;
     }
 }
