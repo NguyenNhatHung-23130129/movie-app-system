@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.movie_app.models.Genre;
+import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.models.MovieResponse;
 import com.example.movie_app.repository.MovieRepository;
 
@@ -30,5 +31,13 @@ public class MovieViewModel extends ViewModel {
 
     public LiveData<List<Genre>> getGenres() {
         return movieRepository.getGenres();
+    }
+
+    public LiveData<MovieDetailResponse> getMovieDetail(String slug) {
+        return movieRepository.getMovieDetail(slug);
+    }
+
+    public LiveData<MovieResponse> getMoviesByCategory(String slug, int page) {
+        return movieRepository.getMoviesByCategory(slug, page);
     }
 }

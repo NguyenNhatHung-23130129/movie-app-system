@@ -253,7 +253,7 @@
                         android:id="@+id/tv_counter_total_users"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_verticalBounds="true"
+                        android:includeFontPadding="false"
                         android:text="2,458,901"
                         android:textColor="#E2E2E8"
                         android:textSize="22sp"
