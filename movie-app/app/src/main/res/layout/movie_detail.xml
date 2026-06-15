@@ -497,7 +497,9 @@
             android:layout_centerVertical="true"
             android:background="@drawable/bg_circle_action"
             android:padding="8dp"
-            android:src="@drawable/ic_back" tools:ignore="ContentDescription" />
+            android:src="@drawable/ic_back"
+            tools:ignore="ContentDescription"
+            app:tint="#FFFFFF"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -513,7 +515,9 @@
                 android:background="@drawable/bg_circle_action"
                 android:padding="8dp"
                 android:src="@drawable/ic_chat"
-                android:layout_marginEnd="12dp" tools:ignore="ContentDescription" />
+                android:layout_marginEnd="12dp"
+                tools:ignore="ContentDescription"
+                app:tint="#FFFFFF"/>
 
             <ImageView
                 android:id="@+id/btnDetailHeart"
@@ -521,7 +525,9 @@
                 android:layout_height="36dp"
                 android:background="@drawable/bg_circle_action"
                 android:padding="8dp"
-                android:src="@drawable/ic_favorite" tools:ignore="ContentDescription" />
+                android:src="@drawable/ic_favorite"
+                tools:ignore="ContentDescription"
+                app:tint="#FFFFFF"/>
         </LinearLayout>
     </RelativeLayout>
 

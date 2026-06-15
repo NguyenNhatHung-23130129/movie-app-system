@@ -29,4 +29,10 @@ public interface ApiService {
 
     @GET("api/v1/movies/genres/{slug}")
     Call<MovieResponse> getMoviesByCategory(@Path("slug") String slug, @Query("page") int page);
+
+    @GET("api/v1/movies/genres/{slug}")
+    Call<okhttp3.ResponseBody> getMoviesByCategoryRaw(@Path("slug") String slug, @Query("page") int page);
+
+    @GET("api/v1/movies/search")
+    Call<MovieResponse> searchMovies(@Query("keyword") String keyword);
 }

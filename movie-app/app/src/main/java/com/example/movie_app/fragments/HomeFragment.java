@@ -1,22 +1,27 @@
 package com.example.movie_app.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.HomeActivity;
+import com.example.movie_app.activities.MovieDetailActivity;
 import com.example.movie_app.adapter.GenreAdapter;
 import com.example.movie_app.adapter.MovieAdapter;
+import com.example.movie_app.helpers.MovieFilterHelper;
 import com.example.movie_app.models.Genre;
 import com.example.movie_app.models.MovieItem;
 import com.example.movie_app.viewmodel.MovieViewModel;
@@ -24,19 +29,18 @@ import com.example.movie_app.viewmodel.MovieViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends BaseFragment {
 
     private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies,
             rvGenresContinue, rvGenresNew, rvGenresSeries, rvGenresSingle;
-    private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle;
+    private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
+    private ImageView imgHeroPoster;
+    private Button btnHeroDetail;
 
-    private MovieAdapter continueWatchingAdapter;
-    private MovieAdapter newMoviesAdapter;
-    private MovieAdapter seriesAdapter;
-    private MovieAdapter singleMoviesAdapter;
-
+    private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter;
     private List<Genre> genreList = new ArrayList<>();
     private MovieViewModel movieViewModel;
+    private MovieItem heroMovie;
 
     @Nullable
     @Override
@@ -47,13 +51,13 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initViews(view);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
         loadDataFromApi();
     }
 
     private void initViews(View view) {
+        // Ánh xạ RecyclerViews
         rvContinueWatching = view.findViewById(R.id.rvContinueWatching);
         rvNewMovies = view.findViewById(R.id.rvNewMovies);
         rvSeries = view.findViewById(R.id.rvSeries);
@@ -63,99 +67,100 @@ public class HomeFragment extends Fragment {
         rvGenresSeries = view.findViewById(R.id.rvGenresSeries);
         rvGenresSingle = view.findViewById(R.id.rvGenresSingle);
 
+        btnViewAllContinue = view.findViewById(R.id.btnViewAllContinue);
         btnViewAllNew = view.findViewById(R.id.btnViewAllNew);
         btnViewAllSeries = view.findViewById(R.id.btnViewAllSeries);
         btnViewAllSingle = view.findViewById(R.id.btnViewAllSingle);
 
-        LinearLayoutManager lm1 = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
-        LinearLayoutManager lm2 = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
-        LinearLayoutManager lm3 = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
-        LinearLayoutManager lm4 = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
+        imgHeroPoster = view.findViewById(R.id.imgHeroPoster);
+        tvHeroTitle = view.findViewById(R.id.tvHeroTitle);
+        btnHeroDetail = view.findViewById(R.id.btnHeroDetail);
 
-        rvGenresContinue.setLayoutManager(lm1);
-        rvGenresNew.setLayoutManager(lm2);
-        rvGenresSeries.setLayoutManager(lm3);
-        rvGenresSingle.setLayoutManager(lm4);
+        continueWatchingAdapter = setupMovieRecyclerView(rvContinueWatching);
+        newMoviesAdapter = setupMovieRecyclerView(rvNewMovies);
+        seriesAdapter = setupMovieRecyclerView(rvSeries);
+        singleMoviesAdapter = setupMovieRecyclerView(rvSingleMovies);
 
-        rvContinueWatching.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        continueWatchingAdapter = new MovieAdapter(new ArrayList<>());
-        rvContinueWatching.setAdapter(continueWatchingAdapter);
-
-        rvNewMovies.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        newMoviesAdapter = new MovieAdapter(new ArrayList<>());
-        rvNewMovies.setAdapter(newMoviesAdapter);
-
-        rvSeries.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        seriesAdapter = new MovieAdapter(new ArrayList<>());
-        rvSeries.setAdapter(seriesAdapter);
-
-        rvSingleMovies.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        singleMoviesAdapter = new MovieAdapter(new ArrayList<>());
-        rvSingleMovies.setAdapter(singleMoviesAdapter);
-
-        MovieAdapter.OnItemClickListener clickListener = movie -> {
-            if (movie != null && movie.getSlug() != null) {
-                android.content.Intent intent = new android.content.Intent(requireContext(), com.example.movie_app.activities.MovieDetailActivity.class);
-
-                intent.putExtra("movie_slug", movie.getSlug());
-                startActivity(intent);
-            } else {
-                Toast.makeText(requireContext(), "Không thể mở bộ phim này!", Toast.LENGTH_SHORT).show();
-            }
-        };
-
-        newMoviesAdapter.setOnItemClickListener(clickListener);
-        seriesAdapter.setOnItemClickListener(clickListener);
-        singleMoviesAdapter.setOnItemClickListener(clickListener);
-        continueWatchingAdapter.setOnItemClickListener(clickListener);
-
+        if (btnViewAllContinue != null) btnViewAllContinue.setOnClickListener(v -> navigateToExplore("LATEST"));
         if (btnViewAllNew != null) btnViewAllNew.setOnClickListener(v -> navigateToExplore("NEW"));
         if (btnViewAllSeries != null) btnViewAllSeries.setOnClickListener(v -> navigateToExplore("SERIES"));
         if (btnViewAllSingle != null) btnViewAllSingle.setOnClickListener(v -> navigateToExplore("SINGLE"));
     }
 
+    private MovieAdapter setupMovieRecyclerView(RecyclerView rv) {
+        rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        MovieAdapter adapter = new MovieAdapter(new ArrayList<>());
+        adapter.setOnItemClickListener(movie -> {
+            if (movie != null && movie.getSlug() != null) {
+                startActivity(new Intent(requireContext(), MovieDetailActivity.class).putExtra("movie_slug", movie.getSlug()));
+            }
+        });
+        rv.setAdapter(adapter);
+        return adapter;
+    }
+
+    private void loadDataFromApi() {
+        movieViewModel.getGenres().observe(getViewLifecycleOwner(), genres -> {
+            if (genres != null && !genres.isEmpty()) {
+                genreList.clear();
+                genreList.addAll(genres);
+
+                setupGenreRecyclerView(rvGenresContinue, continueWatchingAdapter, "LATEST");
+                setupGenreRecyclerView(rvGenresNew, newMoviesAdapter, "NEW");
+                setupGenreRecyclerView(rvGenresSeries, seriesAdapter, "SERIES");
+                setupGenreRecyclerView(rvGenresSingle, singleMoviesAdapter, "SINGLE");
+            }
+        });
+
+        movieViewModel.getLatestMovies(1).observe(getViewLifecycleOwner(), res -> {
+            if (res != null && res.getItems() != null && !res.getItems().isEmpty()) {
+                newMoviesAdapter.setMovieList(res.getItems());
+                continueWatchingAdapter.setMovieList(res.getItems());
+
+                heroMovie = res.getItems().get(0);
+                updateHeroSection(heroMovie);
+            }
+        });
+
+        movieViewModel.getSeriesMovies(1).observe(getViewLifecycleOwner(), res -> {
+            if (res != null) seriesAdapter.setMovieList(res.getItems());
+        });
+        movieViewModel.getSingleMovies(1).observe(getViewLifecycleOwner(), res -> {
+            if (res != null) singleMoviesAdapter.setMovieList(res.getItems());
+        });
+    }
+
+    private void updateHeroSection(MovieItem movie) {
+        tvHeroTitle.setText(movie.getName());
+        Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster);
+        btnHeroDetail.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), MovieDetailActivity.class).putExtra("movie_slug", movie.getSlug()));
+        });
+    }
+
+    private void setupGenreRecyclerView(RecyclerView rv, MovieAdapter targetAdapter, String type) {
+        rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        GenreAdapter adapter = new GenreAdapter(requireContext(), genreList, genre -> {
+            movieViewModel.getMoviesByCategory(genre.getSlug(), 1).observe(getViewLifecycleOwner(), res -> {
+                if (res != null && res.getItems() != null) {
+                    targetAdapter.setMovieList(MovieFilterHelper.filterMovies(res.getItems(), type));
+                }
+            });
+        });
+
+        rv.setAdapter(adapter);
+
+        adapter.notifyDataSetChanged();
+    }
+
     private void navigateToExplore(String movieType) {
         ExploreFragment exploreFragment = new ExploreFragment();
-
         Bundle bundle = new Bundle();
         bundle.putString("MOVIE_TYPE", movieType);
         exploreFragment.setArguments(bundle);
 
         if (getActivity() instanceof HomeActivity) {
-            ((HomeActivity) getActivity()).loadFragment(exploreFragment);
+            ((HomeActivity) getActivity()).loadFragment(exploreFragment, R.id.tabExplore);
         }
-    }
-
-    private void loadDataFromApi() {
-        movieViewModel.getGenres().observe(getViewLifecycleOwner(), genres -> {
-            if (genres != null) {
-                genreList.clear();
-                genreList.addAll(genres);
-                rvGenresContinue.setAdapter(new GenreAdapter(requireContext(), genreList));
-                rvGenresNew.setAdapter(new GenreAdapter(requireContext(), genreList));
-                rvGenresSeries.setAdapter(new GenreAdapter(requireContext(), genreList));
-                rvGenresSingle.setAdapter(new GenreAdapter(requireContext(), genreList));
-            }
-        });
-
-        movieViewModel.getLatestMovies(1).observe(getViewLifecycleOwner(), movieResponse -> {
-            if (movieResponse != null && movieResponse.getItems() != null) {
-                List<MovieItem> items = movieResponse.getItems();
-                newMoviesAdapter.setMovieList(items);
-                continueWatchingAdapter.setMovieList(items);
-            }
-        });
-
-        movieViewModel.getSeriesMovies(1).observe(getViewLifecycleOwner(), movieResponse -> {
-            if (movieResponse != null && movieResponse.getItems() != null) {
-                seriesAdapter.setMovieList(movieResponse.getItems());
-            }
-        });
-
-        movieViewModel.getSingleMovies(1).observe(getViewLifecycleOwner(), movieResponse -> {
-            if (movieResponse != null && movieResponse.getItems() != null) {
-                singleMoviesAdapter.setMovieList(movieResponse.getItems());
-            }
-        });
     }
 }
