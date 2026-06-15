@@ -28,4 +28,10 @@ public interface KKPhimClient {
 
     @GET("phim/{slug}")
     Call<MovieDetailResponse> getMovieDetail(@Path("slug") String slug);
+
+    @GET("v1/api/the-loai/{slug}")
+    Call<MovieCategoryResponse> getMoviesByCategory(@Path("slug") String slug, @Query("page") int page);
+
+    @GET("v1/api/tim-kiem")
+    Call<MovieCategoryResponse> searchMovies(@Query("keyword") String keyword);
 }

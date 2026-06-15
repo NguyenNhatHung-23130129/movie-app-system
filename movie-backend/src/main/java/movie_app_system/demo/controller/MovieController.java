@@ -120,4 +120,43 @@ public class MovieController {
             return ResponseEntity.status(500).body("{\"message\": \"Lỗi kết nối mạng: " + e.getMessage() + "\"}");
         }
     }
+
+    @GetMapping("/genres/{slug}")
+    public ResponseEntity<?> getMoviesByCategory(@PathVariable String slug, @RequestParam(defaultValue = "1") int page) {
+        if ("all".equals(slug)) {
+            return getLatestMovies(page);
+        }
+        try {
+            Response<MovieCategoryResponse> retrofitResponse = kkPhimClient.getMoviesByCategory(slug, page).execute();
+
+            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
+                java.util.List<MovieItem> items = retrofitResponse.body().getData().getItems();
+                java.util.Map<String, Object> cleanResponse = new java.util.HashMap<>();
+                cleanResponse.put("items", items);
+                return ResponseEntity.ok(cleanResponse);
+            } else {
+                return ResponseEntity.status(500).body("Không thể lấy dữ liệu từ KKPhim.");
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Lỗi kết nối: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchMovies(@RequestParam("keyword") String keyword) {
+        try {
+            Response<MovieCategoryResponse> retrofitResponse = kkPhimClient.searchMovies(keyword).execute();
+
+            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
+                java.util.List<MovieItem> items = retrofitResponse.body().getData().getItems();
+                java.util.Map<String, Object> cleanResponse = new java.util.HashMap<>();
+                cleanResponse.put("items", items);
+                return ResponseEntity.ok(cleanResponse);
+            } else {
+                return ResponseEntity.status(500).body("Không tìm thấy kết quả.");
+            }
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Lỗi kết nối: " + e.getMessage());
+        }
+    }
 }

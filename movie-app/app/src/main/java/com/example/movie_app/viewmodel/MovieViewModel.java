@@ -1,6 +1,7 @@
 package com.example.movie_app.viewmodel;
 
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.movie_app.models.Genre;
@@ -9,6 +10,10 @@ import com.example.movie_app.models.MovieResponse;
 import com.example.movie_app.repository.MovieRepository;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MovieViewModel extends ViewModel {
     private final MovieRepository movieRepository;
@@ -39,5 +44,13 @@ public class MovieViewModel extends ViewModel {
 
     public LiveData<MovieResponse> getMoviesByCategory(String slug, int page) {
         return movieRepository.getMoviesByCategory(slug, page);
+    }
+
+    public LiveData<String> getRawDataForDebugging(String slug, int page) {
+        return movieRepository.getRawApiResponse(slug, page);
+    }
+
+    public LiveData<MovieResponse> searchMovies(String keyword) {
+        return movieRepository.searchMovies(keyword);
     }
 }

@@ -18,12 +18,19 @@ public class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreViewHol
     private List<Genre> genreList;
     private int selectedPosition = 0;
 
-    public GenreAdapter(Context context, List<Genre> genreList) {
+    private OnGenreClickListener listener;
+
+    public interface OnGenreClickListener {
+        void onGenreClick(Genre genre);
+    }
+
+    public GenreAdapter(Context context, List<Genre> genreList, OnGenreClickListener listener) {
         this.context = context;
         this.genreList = genreList;
         if (!this.genreList.isEmpty()) {
             this.genreList.get(0).setSelected(true);
         }
+        this.listener = listener;
     }
 
     @NonNull
@@ -39,20 +46,17 @@ public class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreViewHol
         holder.tvGenreName.setText(genre.getName());
 
         if (genre.isSelected()) {
-
-            holder.tvGenreName.setTextColor(Color.parseColor("#E50914"));
-            holder.tvGenreName.setBackgroundResource(R.drawable.genre_bg_normal);
-        } else {
-            holder.tvGenreName.setTextColor(Color.parseColor("#E2E2E8"));
+            holder.tvGenreName.setTextColor(Color.WHITE);
             holder.tvGenreName.setBackgroundResource(R.drawable.genre_bg_selected);
+        } else {
+            // TRẠNG THÁI BÌNH THƯỜNG (NORMAL)
+            holder.tvGenreName.setTextColor(Color.parseColor("#E2E2E8"));
+            holder.tvGenreName.setBackgroundResource(R.drawable.genre_bg_normal);
         }
 
         holder.itemView.setOnClickListener(v -> {
             int currentPosition = holder.getAdapterPosition();
-
-            if (currentPosition == RecyclerView.NO_POSITION) {
-                return;
-            }
+            if (currentPosition == RecyclerView.NO_POSITION) return;
 
             if (selectedPosition != currentPosition) {
                 genreList.get(selectedPosition).setSelected(false);
@@ -62,12 +66,16 @@ public class GenreAdapter extends RecyclerView.Adapter<GenreAdapter.GenreViewHol
                 genreList.get(selectedPosition).setSelected(true);
                 notifyItemChanged(selectedPosition);
             }
+
+            if (listener != null) listener.onGenreClick(genre);
         });
     }
 
     @Override
     public int getItemCount() {
+        android.util.Log.e("DEBUG_GENRE", "Danh sách thể loại có kích thước: " + genreList.size());
         return genreList != null ? genreList.size() : 0;
+
     }
 
     public static class GenreViewHolder extends RecyclerView.ViewHolder {

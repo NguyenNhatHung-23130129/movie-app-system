@@ -118,11 +118,67 @@ public class MovieRepository {
 
     public LiveData<MovieResponse> getMoviesByCategory(String slug, int page) {
         MutableLiveData<MovieResponse> data = new MutableLiveData<>();
+        android.util.Log.d("API_Network", "Đang gọi API category, slug: " + slug); // Log bước gọi
+
         apiService.getMoviesByCategory(slug, page).enqueue(new Callback<MovieResponse>() {
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null) {
+                    android.util.Log.d("API_Network", "Thành công! Nhận được: " + (response.body().getItems() != null ? response.body().getItems().size() : "null"));
                     data.setValue(response.body());
+                } else {
+                    android.util.Log.e("API_Network", "Server trả về lỗi: " + response.code() + " | URL: " + call.request().url());
+                    data.setValue(null);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MovieResponse> call, Throwable t) {
+                android.util.Log.e("API_Network", "Lỗi kết nối: " + t.getMessage());
+                data.setValue(null);
+            }
+        });
+        return data;
+    }
+
+    public LiveData<String> getRawApiResponse(String slug, int page) {
+        MutableLiveData<String> rawData = new MutableLiveData<>();
+
+        // Gọi API như bình thường nhưng dùng ResponseBody để lấy dữ liệu thô
+        apiService.getMoviesByCategoryRaw(slug, page).enqueue(new Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(Call<okhttp3.ResponseBody> call, Response<okhttp3.ResponseBody> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        String json = response.body().string();
+                        android.util.Log.d("API_RAW_DATA", json); // In toàn bộ JSON ra Logcat
+                        rawData.setValue(json);
+                    } catch (Exception e) {
+                        rawData.setValue("Lỗi đọc dữ liệu: " + e.getMessage());
+                    }
+                } else {
+                    rawData.setValue("Lỗi: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<okhttp3.ResponseBody> call, Throwable t) {
+                rawData.setValue("Lỗi kết nối: " + t.getMessage());
+            }
+        });
+        return rawData;
+    }
+
+    public LiveData<MovieResponse> searchMovies(String keyword) {
+        MutableLiveData<MovieResponse> data = new MutableLiveData<>();
+
+        apiService.searchMovies(keyword).enqueue(new Callback<MovieResponse>() {
+            @Override
+            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    data.setValue(response.body());
+                } else {
+                    data.setValue(null);
                 }
             }
 
