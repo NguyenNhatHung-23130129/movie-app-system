@@ -15,6 +15,9 @@
         android:theme="@style/Theme.Movieapp"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".SystemSafetyManagementActivity"
+            android:exported="false" />
+        <activity
             android:name=".ModerationManagementActivity"
             android:exported="false" />
         <activity
@@ -32,7 +35,8 @@
         <activity
             android:name=".activities.MovieDetailActivity"
             android:exported="false" />
-        <activity android:name=".activities.SearchActivity"
+        <activity
+            android:name=".activities.SearchActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
     </application>
