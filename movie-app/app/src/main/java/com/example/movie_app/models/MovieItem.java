@@ -1,10 +1,16 @@
 package com.example.movie_app.models;
 
+import android.graphics.Color;
+import android.view.View;
+import android.widget.TextView;
+
+import com.example.movie_app.R;
 import com.google.gson.annotations.SerializedName; // Nhớ import thư viện này
 
 public class MovieItem {
     private String id;
     private String name;
+    private String slug;
     private String originName;
 
     @SerializedName("poster_url")
@@ -13,6 +19,11 @@ public class MovieItem {
     @SerializedName("thumb_url")
     private String thumbUrl;
     private int year;
+
+    public MovieItem(String slug, String name) {
+        this.slug = slug;
+        this.name = name;
+    }
 
     public String getPosterUrl() { return posterUrl; }
     public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
@@ -26,4 +37,13 @@ public class MovieItem {
     public void setOriginName(String originName) { this.originName = originName; }
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
 }

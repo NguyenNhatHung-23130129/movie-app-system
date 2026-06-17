@@ -33,7 +33,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     public void setMovieList(List<MovieItem> movieList) {
         this.movieList = movieList;
-        notifyDataSetChanged(); // Yêu cầu danh sách vẽ lại giao diện mới
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -63,8 +63,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 .into(holder.imgPoster);
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null && position != RecyclerView.NO_POSITION) {
-                listener.onItemClick(movie);
+            int currentPosition = holder.getBindingAdapterPosition();
+            if (listener != null && currentPosition != RecyclerView.NO_POSITION) {
+                MovieItem clickedMovie = movieList.get(currentPosition);
+                listener.onItemClick(clickedMovie);
             }
         });
     }
@@ -74,7 +76,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         return movieList != null ? movieList.size() : 0;
     }
 
-    // ViewHolder chịu trách nhiệm ánh xạ các thành phần UI trong file home_item_movie.xml
     public static class MovieViewHolder extends RecyclerView.ViewHolder {
         ImageView imgPoster;
         TextView tvTitle;

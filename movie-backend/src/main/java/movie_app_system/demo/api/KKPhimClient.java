@@ -1,11 +1,37 @@
 package movie_app_system.demo.api;
 
+import movie_app_system.demo.dto.GenreResponse;
+import movie_app_system.demo.dto.MovieCategoryResponse;
+import movie_app_system.demo.dto.MovieDetailResponse;
 import movie_app_system.demo.dto.MovieResponse;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
+import java.util.List;
+
 public interface KKPhimClient {
+
     @GET("danh-sach/phim-moi-cap-nhat")
     Call<MovieResponse> getNewMovies(@Query("page") int page);
+
+    @GET("v1/api/danh-sach/phim-bo")
+    Call<MovieCategoryResponse> getSeriesMovies(@Query("page") int page);
+
+    @GET("v1/api/danh-sach/phim-le")
+    Call<MovieCategoryResponse> getSingleMovies(@Query("page") int page);
+
+    @GET("the-loai")
+    Call<List<GenreResponse>> getRemoteGenres();
+
+    @GET("phim/{slug}")
+    Call<MovieDetailResponse> getMovieDetail(@Path("slug") String slug);
+
+    @GET("v1/api/the-loai/{slug}")
+    Call<MovieCategoryResponse> getMoviesByCategory(@Path("slug") String slug, @Query("page") int page);
+
+    @GET("v1/api/tim-kiem")
+    Call<MovieCategoryResponse> searchMovies(@Query("keyword") String keyword);
 }
