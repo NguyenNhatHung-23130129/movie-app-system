@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.media3:media3-datasource-okhttp:1.3.1")
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.firebase.database)
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
