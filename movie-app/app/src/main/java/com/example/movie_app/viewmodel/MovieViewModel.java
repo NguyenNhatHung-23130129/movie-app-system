@@ -3,38 +3,38 @@ package com.example.movie_app.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-
-import com.example.movie_app.models.Genre;
-import com.example.movie_app.models.MovieDetailResponse;
-import com.example.movie_app.models.MovieResponse;
+import com.example.movie_app.models.*;
 import com.example.movie_app.repository.MovieRepository;
-
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MovieViewModel extends ViewModel {
     private final MovieRepository movieRepository;
+
+    private final MutableLiveData<List<MovieItem>> moviesByCategory = new MutableLiveData<>();
 
     public MovieViewModel() {
         this.movieRepository = new MovieRepository();
     }
 
-    public LiveData<MovieResponse> getLatestMovies(int page) {
+
+    public LiveData<List<MovieItem>> getLatestMovies(int page) {
         return movieRepository.getLatestMovies(page);
     }
 
-    public LiveData<MovieResponse> getSeriesMovies(int page) {
+    public LiveData<List<MovieItem>> getMoviesByCategory(String slug, int page) {
+        // Trả về LiveData trực tiếp từ repo, không cần observeForever
+        return movieRepository.getMoviesByCategory(slug, page);
+    }
+
+    public LiveData<List<MovieItem>> getSeriesMovies(int page) {
         return movieRepository.getSeriesMovies(page);
     }
 
-    public LiveData<MovieResponse> getSingleMovies(int page) {
+    public LiveData<List<MovieItem>> getSingleMovies(int page) {
         return movieRepository.getSingleMovies(page);
     }
 
-    public LiveData<List<Genre>> getGenres() {
+    public LiveData<List<Category>> getGenres() {
         return movieRepository.getGenres();
     }
 
@@ -42,15 +42,11 @@ public class MovieViewModel extends ViewModel {
         return movieRepository.getMovieDetail(slug);
     }
 
-    public LiveData<MovieResponse> getMoviesByCategory(String slug, int page) {
-        return movieRepository.getMoviesByCategory(slug, page);
-    }
-
-    public LiveData<String> getRawDataForDebugging(String slug, int page) {
-        return movieRepository.getRawApiResponse(slug, page);
-    }
-
-    public LiveData<MovieResponse> searchMovies(String keyword) {
+    public LiveData<List<MovieItem>> searchMovies(String keyword) {
         return movieRepository.searchMovies(keyword);
+    }
+
+    public LiveData<List<MovieItem>> getMoviesFromFirebase() {
+        return movieRepository.getMoviesFromFirebase();
     }
 }

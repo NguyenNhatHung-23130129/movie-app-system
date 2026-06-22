@@ -2,6 +2,7 @@ package com.example.movie_app.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,10 +20,9 @@ import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.HomeActivity;
 import com.example.movie_app.activities.MovieDetailActivity;
-import com.example.movie_app.adapter.GenreAdapter;
 import com.example.movie_app.adapter.MovieAdapter;
-import com.example.movie_app.helpers.MovieFilterHelper;
-import com.example.movie_app.models.Genre;
+import com.example.movie_app.adapter.CategoryAdapter;
+import com.example.movie_app.models.Category;
 import com.example.movie_app.models.MovieItem;
 import com.example.movie_app.viewmodel.MovieViewModel;
 
@@ -36,9 +36,10 @@ public class HomeFragment extends BaseFragment {
     private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
     private ImageView imgHeroPoster;
     private Button btnHeroDetail;
+    private MovieAdapter activeAdapter;
 
     private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter;
-    private List<Genre> genreList = new ArrayList<>();
+    private List<Category> categoryList = new ArrayList<>();
     private MovieViewModel movieViewModel;
     private MovieItem heroMovie;
 
@@ -53,11 +54,12 @@ public class HomeFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         initViews(view);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
-        loadDataFromApi();
+
+        loadCategories();
+        loadDataFromFirebase();
     }
 
     private void initViews(View view) {
-        // Ánh xạ RecyclerViews
         rvContinueWatching = view.findViewById(R.id.rvContinueWatching);
         rvNewMovies = view.findViewById(R.id.rvNewMovies);
         rvSeries = view.findViewById(R.id.rvSeries);
@@ -90,67 +92,77 @@ public class HomeFragment extends BaseFragment {
     private MovieAdapter setupMovieRecyclerView(RecyclerView rv) {
         rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         MovieAdapter adapter = new MovieAdapter(new ArrayList<>());
-        adapter.setOnItemClickListener(movie -> {
-            if (movie != null && movie.getSlug() != null) {
-                startActivity(new Intent(requireContext(), MovieDetailActivity.class).putExtra("movie_slug", movie.getSlug()));
-            }
-        });
         rv.setAdapter(adapter);
         return adapter;
     }
 
-    private void loadDataFromApi() {
-        movieViewModel.getGenres().observe(getViewLifecycleOwner(), genres -> {
-            if (genres != null && !genres.isEmpty()) {
-                genreList.clear();
-                genreList.addAll(genres);
+    private void loadCategories() {
+        movieViewModel.getGenres().observe(getViewLifecycleOwner(), categories -> {
+            if (categories != null && !categories.isEmpty()) {
+                categoryList.clear();
+                categoryList.addAll(categories);
 
-                setupGenreRecyclerView(rvGenresContinue, continueWatchingAdapter, "LATEST");
-                setupGenreRecyclerView(rvGenresNew, newMoviesAdapter, "NEW");
-                setupGenreRecyclerView(rvGenresSeries, seriesAdapter, "SERIES");
-                setupGenreRecyclerView(rvGenresSingle, singleMoviesAdapter, "SINGLE");
+                setupCategoryRecyclerView(rvGenresContinue, continueWatchingAdapter);
+                setupCategoryRecyclerView(rvGenresNew, newMoviesAdapter);
+                setupCategoryRecyclerView(rvGenresSeries, seriesAdapter);
+                setupCategoryRecyclerView(rvGenresSingle, singleMoviesAdapter);
             }
         });
+    }
 
-        movieViewModel.getLatestMovies(1).observe(getViewLifecycleOwner(), res -> {
-            if (res != null && res.getItems() != null && !res.getItems().isEmpty()) {
-                newMoviesAdapter.setMovieList(res.getItems());
-                continueWatchingAdapter.setMovieList(res.getItems());
+    private void loadDataFromFirebase() {
+        movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), movieList -> {
+            if (movieList != null && !movieList.isEmpty()) {
+                List<MovieItem> latestList = new ArrayList<>();
+                List<MovieItem> seriesList = new ArrayList<>();
+                List<MovieItem> singleList = new ArrayList<>();
 
-                heroMovie = res.getItems().get(0);
-                updateHeroSection(heroMovie);
+                for (MovieItem movie : movieList) {
+                    // 1. Luôn thêm vào danh sách phim mới (Latest)
+                    latestList.add(movie);
+
+                    // 2. Lọc bằng trường type mới (cách này chuẩn xác và nhanh nhất)
+                    // Giả định giá trị trả về từ API/Firebase là "series" và "single"
+                    if ("series".equals(movie.getType())) {
+                        seriesList.add(movie);
+                    } else if ("single".equals(movie.getType())) {
+                        singleList.add(movie);
+                    }
+                }
+
+                newMoviesAdapter.setMovieList(latestList);
+                seriesAdapter.setMovieList(seriesList);
+                singleMoviesAdapter.setMovieList(singleList);
+                continueWatchingAdapter.setMovieList(latestList);
+
+                if (!movieList.isEmpty()) {
+                    heroMovie = movieList.get(0);
+                    updateHeroSection(heroMovie);
+                }
             }
-        });
-
-        movieViewModel.getSeriesMovies(1).observe(getViewLifecycleOwner(), res -> {
-            if (res != null) seriesAdapter.setMovieList(res.getItems());
-        });
-        movieViewModel.getSingleMovies(1).observe(getViewLifecycleOwner(), res -> {
-            if (res != null) singleMoviesAdapter.setMovieList(res.getItems());
         });
     }
 
     private void updateHeroSection(MovieItem movie) {
         tvHeroTitle.setText(movie.getName());
-        Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster);
-        btnHeroDetail.setOnClickListener(v -> {
-            startActivity(new Intent(requireContext(), MovieDetailActivity.class).putExtra("movie_slug", movie.getSlug()));
-        });
+        imgHeroPoster.post(() -> Glide.with(this).load(movie.getThumbUrl()).into(imgHeroPoster));
+        btnHeroDetail.setOnClickListener(v -> startActivity(new Intent(requireContext(), MovieDetailActivity.class)
+                .putExtra("movie_slug", movie.getSlug())));
     }
 
-    private void setupGenreRecyclerView(RecyclerView rv, MovieAdapter targetAdapter, String type) {
+    private void setupCategoryRecyclerView(RecyclerView rv, MovieAdapter targetAdapter) {
         rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        GenreAdapter adapter = new GenreAdapter(requireContext(), genreList, genre -> {
-            movieViewModel.getMoviesByCategory(genre.getSlug(), 1).observe(getViewLifecycleOwner(), res -> {
-                if (res != null && res.getItems() != null) {
-                    targetAdapter.setMovieList(MovieFilterHelper.filterMovies(res.getItems(), type));
-                }
-            });
+
+        CategoryAdapter adapter = new CategoryAdapter(requireContext(), categoryList, category -> {
+            movieViewModel.getMoviesByCategory(category.getSlug(), 1)
+                    .observe(getViewLifecycleOwner(), movieList -> {
+                        if (movieList != null) {
+                            targetAdapter.setMovieList(movieList);
+                            rv.scrollToPosition(0);
+                        }
+                    });
         });
-
         rv.setAdapter(adapter);
-
-        adapter.notifyDataSetChanged();
     }
 
     private void navigateToExplore(String movieType) {
