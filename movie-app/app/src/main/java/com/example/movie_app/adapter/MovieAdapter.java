@@ -45,7 +45,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         holder.tvTitle.setText(movie.getName());
 
         Glide.with(holder.itemView.getContext())
-                .load(movie.getFullThumbUrl())
+                .load(movie.getPosterUrl())
                 .centerCrop()
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)

@@ -102,43 +102,30 @@ public class HomeFragment extends BaseFragment {
                 categoryList.clear();
                 categoryList.addAll(categories);
 
-                setupCategoryRecyclerView(rvGenresContinue, continueWatchingAdapter);
-                setupCategoryRecyclerView(rvGenresNew, newMoviesAdapter);
-                setupCategoryRecyclerView(rvGenresSeries, seriesAdapter);
-                setupCategoryRecyclerView(rvGenresSingle, singleMoviesAdapter);
+                setupCategoryRecyclerView(rvGenresContinue, continueWatchingAdapter, null);
+                setupCategoryRecyclerView(rvGenresNew, newMoviesAdapter, null);
+                setupCategoryRecyclerView(rvGenresSeries, seriesAdapter, "series");
+                setupCategoryRecyclerView(rvGenresSingle, singleMoviesAdapter, "single");
             }
         });
     }
 
     private void loadDataFromFirebase() {
+        movieViewModel.getMoviesByPath("by_type", "series", "series")
+                .observe(getViewLifecycleOwner(), list -> {
+                    if (list != null) seriesAdapter.setMovieList(list);
+                });
+
+        movieViewModel.getMoviesByPath("by_type", "single", "single")
+                .observe(getViewLifecycleOwner(), list -> {
+                    if (list != null) singleMoviesAdapter.setMovieList(list);
+                });
+
         movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), movieList -> {
             if (movieList != null && !movieList.isEmpty()) {
-                List<MovieItem> latestList = new ArrayList<>();
-                List<MovieItem> seriesList = new ArrayList<>();
-                List<MovieItem> singleList = new ArrayList<>();
-
-                for (MovieItem movie : movieList) {
-                    // 1. Luôn thêm vào danh sách phim mới (Latest)
-                    latestList.add(movie);
-
-                    // 2. Lọc bằng trường type mới (cách này chuẩn xác và nhanh nhất)
-                    // Giả định giá trị trả về từ API/Firebase là "series" và "single"
-                    if ("series".equals(movie.getType())) {
-                        seriesList.add(movie);
-                    } else if ("single".equals(movie.getType())) {
-                        singleList.add(movie);
-                    }
-                }
-
-                newMoviesAdapter.setMovieList(latestList);
-                seriesAdapter.setMovieList(seriesList);
-                singleMoviesAdapter.setMovieList(singleList);
-                continueWatchingAdapter.setMovieList(latestList);
-
-                if (!movieList.isEmpty()) {
-                    heroMovie = movieList.get(0);
-                    updateHeroSection(heroMovie);
-                }
+                newMoviesAdapter.setMovieList(movieList);
+                continueWatchingAdapter.setMovieList(movieList);
+                updateHeroSection(movieList.get(0));
             }
         });
     }
@@ -150,11 +137,17 @@ public class HomeFragment extends BaseFragment {
                 .putExtra("movie_slug", movie.getSlug())));
     }
 
-    private void setupCategoryRecyclerView(RecyclerView rv, MovieAdapter targetAdapter) {
+    // Sửa hàm setupCategoryRecyclerView để rõ ràng hơn
+    private void setupCategoryRecyclerView(RecyclerView rv, MovieAdapter targetAdapter, String filterType) {
+        if (rv == null) return;
         rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        List<Category> categoryCopy = new ArrayList<>(categoryList);
 
-        CategoryAdapter adapter = new CategoryAdapter(requireContext(), categoryList, category -> {
-            movieViewModel.getMoviesByCategory(category.getSlug(), 1)
+        CategoryAdapter adapter = new CategoryAdapter(requireContext(), categoryCopy, category -> {
+            Log.d("DEBUG_FILTER", "Chọn thể loại: " + category.getSlug() + " | Lọc theo type: " + filterType);
+
+            // Gọi ViewModel với tham số type bổ sung
+            movieViewModel.getMoviesByPath("by_category", category.getSlug(), filterType)
                     .observe(getViewLifecycleOwner(), movieList -> {
                         if (movieList != null) {
                             targetAdapter.setMovieList(movieList);
