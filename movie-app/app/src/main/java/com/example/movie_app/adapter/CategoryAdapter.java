@@ -49,6 +49,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         holder.tvCategoryName.setText(category.getName());
 
         boolean isSelected = (position == selectedPosition);
+        holder.tvCategoryName.setSelected(isSelected);
 
         if (isSelected) {
             holder.tvCategoryName.setTextColor(Color.WHITE);
@@ -59,9 +60,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
 
         holder.itemView.setOnClickListener(v -> {
-            if (selectedPosition != holder.getAdapterPosition()) {
+            int currentPos = holder.getBindingAdapterPosition();
+            if (currentPos != RecyclerView.NO_POSITION && selectedPosition != currentPos) {
                 int previousPosition = selectedPosition;
-                selectedPosition = holder.getAdapterPosition();
+                selectedPosition = currentPos;
 
                 notifyItemChanged(previousPosition);
                 notifyItemChanged(selectedPosition);
@@ -73,7 +75,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     @Override
     public int getItemCount() {
-        return categoryList != null ? categoryList.size() : 0;
+        int count = (categoryList != null ? categoryList.size() : 0);
+        android.util.Log.d("ADAPTER_DEBUG", "Category list size: " + count);
+        return count;
     }
 
     public static class CategoryViewHolder extends RecyclerView.ViewHolder {

@@ -21,9 +21,8 @@ public class MovieViewModel extends ViewModel {
         return movieRepository.getLatestMovies(page);
     }
 
-    public LiveData<List<MovieItem>> getMoviesByCategory(String slug, int page) {
-        // Trả về LiveData trực tiếp từ repo, không cần observeForever
-        return movieRepository.getMoviesByCategory(slug, page);
+    public LiveData<List<MovieItem>> getMoviesByPath(String path, String slug, String typeFilter) {
+        return movieRepository.getMoviesByPath(path, slug, typeFilter);
     }
 
     public LiveData<List<MovieItem>> getSeriesMovies(int page) {
