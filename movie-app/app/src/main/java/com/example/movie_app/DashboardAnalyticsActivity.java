@@ -1,6 +1,7 @@
 package com.example.movie_app;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -24,9 +25,7 @@ public class DashboardAnalyticsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard_analytics);
-
         initViews();
-
         setupClickListeners();
     }
 
@@ -40,6 +39,9 @@ public class DashboardAnalyticsActivity extends AppCompatActivity {
         tvBtnSeeAll = findViewById(R.id.tv_btn_see_all);
         progressMovie = findViewById(R.id.progress_movie);
         progressSeries = findViewById(R.id.progress_series);
+        navDashboard = findViewById(R.id.nav_dashboard);
+        navMovies = findViewById(R.id.nav_movies);
+        //navUsers = findViewById(R.id.nav_users);
     }
 
     private void setupClickListeners() {

@@ -1,6 +1,8 @@
 package com.example.movie_app.models;
+
 import com.google.gson.annotations.SerializedName;
-public class Genre {
+
+public class Category {
     @SerializedName("id")
     private String id;
 
@@ -11,7 +13,15 @@ public class Genre {
     private String slug;
 
     private boolean isSelected = false;
-    
+
+    public Category() {}
+
+    public Category(String id, String name, String slug) {
+        this.id = id;
+        this.name = name;
+        this.slug = slug;
+    }
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

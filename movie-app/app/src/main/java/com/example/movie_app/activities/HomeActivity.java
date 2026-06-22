@@ -12,11 +12,12 @@ import com.example.movie_app.helpers.NavHelper;
 
 public class HomeActivity extends AppCompatActivity {
 
+    private int currentTabId = -1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home_activity);
-
 
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment(), R.id.tabHome);
@@ -26,23 +27,20 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void initNavigation() {
-        findViewById(R.id.tabHome).setOnClickListener(v ->
-                loadFragment(new HomeFragment(), R.id.tabHome));
-
-        findViewById(R.id.tabExplore).setOnClickListener(v ->
-                loadFragment(new ExploreFragment(), R.id.tabExplore));
-
-        // findViewById(R.id.tabFavorite).setOnClickListener(v -> loadFragment(new FavoriteFragment(), R.id.tabFavorite));
-        // findViewById(R.id.tabProfile).setOnClickListener(v -> loadFragment(new ProfileFragment(), R.id.tabProfile));
+        findViewById(R.id.tabHome).setOnClickListener(v -> loadFragment(new HomeFragment(), R.id.tabHome));
+        findViewById(R.id.tabExplore).setOnClickListener(v -> loadFragment(new ExploreFragment(), R.id.tabExplore));
     }
 
     public void loadFragment(Fragment fragment, int tabId) {
+        if (currentTabId == tabId) return;
+
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragmentContainer, fragment)
                 .commit();
 
-        View bottomNav = findViewById(R.id.layoutBottom);
+        currentTabId = tabId;
 
+        View bottomNav = findViewById(R.id.layoutBottom);
         if (bottomNav != null) {
             NavHelper.highlightTab(bottomNav, tabId);
         }
