@@ -190,9 +190,14 @@ public class MovieRepository {
         apiService.getMovieDetail(slug).enqueue(new Callback<MovieDetailResponse>() {
             @Override
             public void onResponse(Call<MovieDetailResponse> call, Response<MovieDetailResponse> response) {
+                if (response.body() != null) {
+                    Log.d("DETAIL_DEBUG", "JSON trả về: " + new com.google.gson.Gson().toJson(response.body()));
+                }
+
                 if (response.isSuccessful() && response.body() != null) {
                     liveData.setValue(response.body());
                 } else {
+                    Log.e("DETAIL_DEBUG", "Lỗi: " + response.code());
                     liveData.setValue(null);
                 }
             }
@@ -204,7 +209,29 @@ public class MovieRepository {
         return liveData;
     }
 
+    private LiveData<List<MovieItem>> handleDirectListResponse(Call<List<MovieItem>> call) {
+        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
+        call.enqueue(new Callback<List<MovieItem>>() {
+            @Override
+            public void onResponse(Call<List<MovieItem>> call, Response<List<MovieItem>> res) {
+                if (res.isSuccessful() && res.body() != null) {
+                    Log.d("SEARCH_DEBUG", "Thành công: " + res.body().size() + " items");
+                    liveData.setValue(res.body());
+                } else {
+                    Log.e("SEARCH_DEBUG", "API Error: " + res.code());
+                    liveData.setValue(null);
+                }
+            }
+            @Override
+            public void onFailure(Call<List<MovieItem>> call, Throwable t) {
+                Log.e("SEARCH_DEBUG", "Failure: " + t.getMessage());
+                liveData.setValue(null);
+            }
+        });
+        return liveData;
+    }
+
     public LiveData<List<MovieItem>> searchMovies(String keyword) {
-        return handleV1Response(apiService.searchMovies(keyword));
+        return handleDirectListResponse(apiService.searchMovies(keyword));
     }
 }

@@ -28,7 +28,7 @@ public interface ApiService {
     Call<List<Category>> getGenres();
 
     // 5. Lấy chi tiết phim
-    @GET("phim/{slug}")
+    @GET("api/v1/movies/detail/{slug}")
     Call<MovieDetailResponse> getMovieDetail(@Path("slug") String slug);
 
     // 6. Lấy phim theo thể loại (API v1)
@@ -40,8 +40,8 @@ public interface ApiService {
     Call<KKPhimV1Response> getMoviesByCountry(@Path("slug") String slug, @Query("page") int page);
 
     // 8. Tìm kiếm phim (API v1)
-    @GET("v1/api/tim-kiem")
-    Call<KKPhimV1Response> searchMovies(@Query("keyword") String keyword);
+    @GET("api/v1/movies/search")
+    Call<List<MovieItem>> searchMovies(@Query("keyword") String keyword);
 
     @POST("/api/v1/resume/save")
     Call<ResumeData> saveResumeData(@Body ResumeData resumeData);

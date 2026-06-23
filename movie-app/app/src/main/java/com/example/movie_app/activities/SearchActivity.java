@@ -2,6 +2,7 @@ package com.example.movie_app.activities;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -68,10 +69,13 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void performSearch(String keyword) {
+        Log.d("SEARCH_DEBUG", "Bắt đầu tìm kiếm với từ khóa: " + keyword);
         movieViewModel.searchMovies(keyword).observe(this, movieList -> {
-            if (movieList != null && !movieList.isEmpty()) {
+            if (movieList != null) {
+                Log.d("SEARCH_DEBUG", "Số lượng phim tìm thấy: " + movieList.size());
                 searchAdapter.setMovieList(movieList);
             } else {
+                Log.e("SEARCH_DEBUG", "API trả về NULL hoặc lỗi!");
                 searchAdapter.setMovieList(new ArrayList<>());
                 Toast.makeText(this, "Không tìm thấy kết quả", Toast.LENGTH_SHORT).show();
             }

@@ -17,7 +17,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     private Context context;
     private List<Category> categoryList;
-    private int selectedPosition = 0;
+    private int selectedPosition = -1;
     private OnCategoryClickListener listener;
 
     public interface OnCategoryClickListener {
@@ -32,7 +32,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     public void updateList(List<Category> newList) {
         this.categoryList = newList;
-        this.selectedPosition = 0;
+        this.selectedPosition = -1;
         notifyDataSetChanged();
     }
 
@@ -61,11 +61,19 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
         holder.itemView.setOnClickListener(v -> {
             int currentPos = holder.getBindingAdapterPosition();
-            if (currentPos != RecyclerView.NO_POSITION && selectedPosition != currentPos) {
-                int previousPosition = selectedPosition;
+            if (currentPos == RecyclerView.NO_POSITION) return;
+
+            if (selectedPosition == currentPos) {
+                // Bỏ chọn
+                int oldPos = selectedPosition;
+                selectedPosition = -1;
+                notifyItemChanged(oldPos);
+                if (listener != null) listener.onCategoryClick(null);
+            } else {
+                int oldPos = selectedPosition;
                 selectedPosition = currentPos;
 
-                notifyItemChanged(previousPosition);
+                notifyItemChanged(oldPos);
                 notifyItemChanged(selectedPosition);
 
                 if (listener != null) listener.onCategoryClick(categoryList.get(selectedPosition));
@@ -75,14 +83,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     @Override
     public int getItemCount() {
-        int count = (categoryList != null ? categoryList.size() : 0);
-        android.util.Log.d("ADAPTER_DEBUG", "Category list size: " + count);
-        return count;
+        return (categoryList != null ? categoryList.size() : 0);
     }
 
     public static class CategoryViewHolder extends RecyclerView.ViewHolder {
         TextView tvCategoryName;
-
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCategoryName = itemView.findViewById(R.id.tvGenreName);

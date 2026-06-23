@@ -2,6 +2,7 @@ package com.example.movie_app.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,10 +43,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         MovieItem movie = movieList.get(position);
         if (movie == null) return;
 
+        Log.d("IMAGE_DEBUG", "Name: " + movie.getName() + " | Poster: " + movie.getPosterUrl() + " | Thumb: " + movie.getThumbUrl());
+
         holder.tvTitle.setText(movie.getName());
 
+        String imageUrl = (movie.getFullThumbUrl() != null && !movie.getFullThumbUrl().isEmpty())
+                ? movie.getFullThumbUrl()
+                : movie.getFullPosterUrl();
+
+        Log.d("DEBUG_ADAPTER", "Final URL cho phim " + movie.getName() + " là: " + imageUrl);
+
         Glide.with(holder.itemView.getContext())
-                .load(movie.getPosterUrl())
+                .load(imageUrl)
                 .centerCrop()
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
@@ -56,6 +65,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 Context context = holder.itemView.getContext();
                 Intent intent = new Intent(context, MovieDetailActivity.class);
                 intent.putExtra("movie_slug", movie.getSlug());
+                intent.putExtra("movie_image", imageUrl);
+                Log.d("DEBUG_INTENT_SEND", "Đang gửi intent với image: " + imageUrl);
                 context.startActivity(intent);
             }
         });
