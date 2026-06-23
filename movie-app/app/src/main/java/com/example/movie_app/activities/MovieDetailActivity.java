@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
+import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.models.Category;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
@@ -100,8 +101,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
-        Log.d("DEBUG_IMAGE", "Intent URL: " + imageUrlFromIntent);
-        Log.d("DEBUG_IMAGE", "API URL: " + info.getPosterUrl());
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
             StringBuilder genres = new StringBuilder();
             for (int i = 0; i < info.getCategory().size(); i++) {
@@ -137,6 +136,7 @@ public class MovieDetailActivity extends AppCompatActivity {
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(imgDetailPoster);
+        loadRelatedMovies(info);
     }
 
     private String listToString(List<String> list) {
@@ -170,5 +170,16 @@ public class MovieDetailActivity extends AppCompatActivity {
         } else {
             tvTabRelated.setTextColor(white); viewRelatedLine.setVisibility(View.VISIBLE); layoutTabRelatedContent.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void loadRelatedMovies(MovieDetailResponse.MovieDetail info) {
+        movieViewModel.getRelatedMovies(info.getSlug(), info.getCategory())
+                .observe(this, relatedList -> {
+                    if (relatedList != null) {
+                        relatedList.removeIf(m -> m.getSlug().equals(info.getSlug()));
+                        MovieAdapter relatedAdapter = new MovieAdapter(relatedList);
+                        rvRelatedMovies.setAdapter(relatedAdapter);
+                    }
+                });
     }
 }

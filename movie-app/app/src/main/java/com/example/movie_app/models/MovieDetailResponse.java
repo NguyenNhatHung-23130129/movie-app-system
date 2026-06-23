@@ -44,6 +44,8 @@ public class MovieDetailResponse {
         @PropertyName("id") public void setId(String id) { this.id = id; }
         @PropertyName("name") public String getName() { return name; }
         @PropertyName("name") public void setName(String name) { this.name = name; }
+        @PropertyName("slug")
+        public String getSlug() { return slug;}
         @PropertyName("poster_url") public String getPosterUrl() { return posterUrl; }
         @PropertyName("poster_url") public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
         @PropertyName("content") public String getContent() { return content; }

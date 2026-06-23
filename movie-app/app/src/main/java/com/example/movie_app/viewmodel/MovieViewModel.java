@@ -30,11 +30,32 @@ public class MovieViewModel extends ViewModel {
     }
 
     public LiveData<List<MovieItem>> searchMovies(String keyword) {
-        Log.d("SEARCH_DEBUG", "ViewModel nhận yêu cầu tìm: " + keyword);
         return movieRepository.searchMovies(keyword);
     }
 
     public LiveData<List<MovieItem>> getMoviesFromFirebase() {
         return movieRepository.getMoviesFromFirebase();
+    }
+
+    public LiveData<List<MovieItem>> getRelatedMovies(String currentSlug, List<Category> categories) {
+        MutableLiveData<List<MovieItem>> relatedLiveData = new MutableLiveData<>();
+        String categorySlug = (categories != null && !categories.isEmpty()) ? categories.get(0).getSlug() : "";
+
+        movieRepository.getMoviesByPath("by_category", categorySlug, "").observeForever(movies -> {
+            if (movies != null) {
+                String seriesPrefix = currentSlug.split("-")[0];
+
+                movies.sort((m1, m2) -> {
+                    boolean m1Series = m1.getSlug().contains(seriesPrefix);
+                    boolean m2Series = m2.getSlug().contains(seriesPrefix);
+
+                    if (m1Series && !m2Series) return -1;
+                    if (!m1Series && m2Series) return 1;
+                    return 0;
+                });
+                relatedLiveData.setValue(movies);
+            }
+        });
+        return relatedLiveData;
     }
 }
