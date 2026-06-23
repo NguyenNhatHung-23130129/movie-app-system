@@ -37,6 +37,11 @@ public class MovieController {
         return executeV1Call(kkPhimClient.getSingleMovies(page), "Không thể lấy dữ liệu phim lẻ");
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchMovies(@RequestParam String keyword) {
+        return executeV1Call(kkPhimClient.searchMovies(keyword), "Không thể tìm kiếm phim");
+    }
+
     @GetMapping("/genres")
     public ResponseEntity<?> getAllGenres() {
         try {

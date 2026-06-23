@@ -1,5 +1,7 @@
 package com.example.movie_app.viewmodel;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -10,27 +12,13 @@ import java.util.List;
 public class MovieViewModel extends ViewModel {
     private final MovieRepository movieRepository;
 
-    private final MutableLiveData<List<MovieItem>> moviesByCategory = new MutableLiveData<>();
-
     public MovieViewModel() {
         this.movieRepository = new MovieRepository();
     }
 
 
-    public LiveData<List<MovieItem>> getLatestMovies(int page) {
-        return movieRepository.getLatestMovies(page);
-    }
-
     public LiveData<List<MovieItem>> getMoviesByPath(String path, String slug, String typeFilter) {
         return movieRepository.getMoviesByPath(path, slug, typeFilter);
-    }
-
-    public LiveData<List<MovieItem>> getSeriesMovies(int page) {
-        return movieRepository.getSeriesMovies(page);
-    }
-
-    public LiveData<List<MovieItem>> getSingleMovies(int page) {
-        return movieRepository.getSingleMovies(page);
     }
 
     public LiveData<List<Category>> getGenres() {
@@ -42,6 +30,7 @@ public class MovieViewModel extends ViewModel {
     }
 
     public LiveData<List<MovieItem>> searchMovies(String keyword) {
+        Log.d("SEARCH_DEBUG", "ViewModel nhận yêu cầu tìm: " + keyword);
         return movieRepository.searchMovies(keyword);
     }
 

@@ -21,11 +21,11 @@ public class MovieItem {
     @PropertyName("origin_name")
     private String originName;
 
-    @SerializedName("poster_url")
+    @SerializedName("posterUrl")
     @PropertyName("poster_url")
     private String posterUrl;
 
-    @SerializedName("thumb_url")
+    @SerializedName("thumbUrl")
     @PropertyName("thumb_url")
     private String thumbUrl;
 
@@ -99,7 +99,12 @@ public class MovieItem {
     @PropertyName("country") public void setCountry(List<Country> country) { this.country = country; }
 
     public String getFullThumbUrl() {
-        if (thumbUrl == null || thumbUrl.isEmpty()) return "";
+        if (thumbUrl == null || thumbUrl.isEmpty()) return getFullPosterUrl();
         return thumbUrl.startsWith("http") ? thumbUrl : "https://phimimg.com/" + thumbUrl;
+    }
+
+    public String getFullPosterUrl() {
+        if (posterUrl == null || posterUrl.isEmpty()) return "";
+        return posterUrl.startsWith("http") ? posterUrl : "https://phimimg.com/" + posterUrl;
     }
 }

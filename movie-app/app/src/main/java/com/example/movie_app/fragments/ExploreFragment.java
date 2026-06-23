@@ -52,6 +52,14 @@ public class ExploreFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
 
+        if (getArguments() != null) {
+            String type = getArguments().getString("MOVIE_TYPE");
+            if (type != null) {
+                if (type.equals("LATEST")) currentFormat = "NEW";
+                else currentFormat = type;
+            }
+        }
+
         initViews(view);
         setupListeners();
         loadData();
@@ -96,41 +104,20 @@ public class ExploreFragment extends BaseFragment {
     }
 
     private void applyFilters() {
-        List<MovieItem> filteredList = new ArrayList<>();
-
-        for (MovieItem movie : allMoviesList) {
-            // Log để debug xem từng phim có dữ liệu gì
-            Log.d("FILTER_DEBUG", "Đang kiểm tra phim: " + movie.getName() + " | Cat: " + movie.getCategory());
-
-            if (movie.getCategory() == null) continue;
-
-            // Kiểm tra Format
-            boolean matchFormat = true;
-            if (currentFormat.equals("SERIES")) {
-                matchFormat = movie.getCategory().stream().anyMatch(c ->
-                        "phim-bo".equalsIgnoreCase(c.getSlug()) || c.getName().contains("Bộ"));
-            } else if (currentFormat.equals("SINGLE")) {
-                matchFormat = movie.getCategory().stream().anyMatch(c ->
-                        "phim-le".equalsIgnoreCase(c.getSlug()) || c.getName().contains("Lẻ"));
-            }
-
-            // Kiểm tra Thể loại (Genre)
-            boolean matchGenre = true;
-            if (currentGenreSlug != null) {
-                // Kiểm tra bằng cả Slug và Name để không bị sót
-                matchGenre = movie.getCategory().stream().anyMatch(c ->
-                        c.getSlug().equalsIgnoreCase(currentGenreSlug) ||
-                                c.getName().equalsIgnoreCase(currentGenreSlug)
-                );
-            }
-
-            if (matchFormat && matchGenre) {
-                filteredList.add(movie);
-            }
+        if (currentGenreSlug != null) {
+            String type = currentFormat.equals("NEW") ? "" : currentFormat.toLowerCase();
+            movieViewModel.getMoviesByPath("by_category", currentGenreSlug, type)
+                    .observe(getViewLifecycleOwner(), exploreAdapter::setMovieList);
         }
-
-        Log.d("FILTER_DEBUG", "Kết quả sau lọc: " + filteredList.size() + " phim");
-        exploreAdapter.setMovieList(filteredList);
+        else {
+            List<MovieItem> filtered = new ArrayList<>();
+            for (MovieItem m : allMoviesList) {
+                if (currentFormat.equals("NEW") || currentFormat.toLowerCase().equals(m.getType())) {
+                    filtered.add(m);
+                }
+            }
+            exploreAdapter.setMovieList(filtered);
+        }
         updateUI();
     }
 

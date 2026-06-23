@@ -2,6 +2,7 @@ package com.example.movie_app.activities;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -43,19 +44,25 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         initViews();
         setupTabClickListeners();
-
+        String imageUrlFromIntent = getIntent().getStringExtra("movie_image");
+        Log.d("DEBUG_INTENT", "Nhận được từ Intent: " + imageUrlFromIntent);
+        if (getIntent().getExtras() != null) {
+            for (String key : getIntent().getExtras().keySet()) {
+                Log.d("DEBUG_INTENT", "Key tồn tại: " + key);
+            }
+        }
         btnDetailBack.setOnClickListener(v -> finish());
 
         String movieSlug = getIntent().getStringExtra("movie_slug");
+        Log.d("DEBUG_SLUG", "Slug: " + movieSlug);
         if (movieSlug != null) {
             movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
             movieViewModel.getMovieDetail(movieSlug).observe(this, response -> {
-                // Kiểm tra response theo model mới: MovieDetailResponse
                 if (response != null && response.getMovie() != null) {
-                    bindMovieData(response.getMovie());
+                    bindMovieData(response.getMovie(), imageUrlFromIntent);
                 } else {
-                    Toast.makeText(this, "Không tìm thấy thông tin bộ phim!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    Log.e("DEBUG_API", "Response hoặc Movie bị null");
+                    Toast.makeText(this, "Không tìm thấy thông tin phim!", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -90,12 +97,11 @@ public class MovieDetailActivity extends AppCompatActivity {
         rvRelatedMovies.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
     }
 
-    // Sử dụng MovieDetail (static class trong MovieDetailResponse)
-    private void bindMovieData(MovieDetailResponse.MovieDetail info) {
+    private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
-
-        // Xử lý Category
+        Log.d("DEBUG_IMAGE", "Intent URL: " + imageUrlFromIntent);
+        Log.d("DEBUG_IMAGE", "API URL: " + info.getPosterUrl());
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
             StringBuilder genres = new StringBuilder();
             for (int i = 0; i < info.getCategory().size(); i++) {
@@ -107,24 +113,29 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         tvDetailTime.setText((info.getTime() != null ? info.getTime() : "N/A") + " • " + (info.getQuality() != null ? info.getQuality() : "HD"));
 
-        // Status
         boolean isCompleted = "completed".equalsIgnoreCase(info.getStatus());
         tvDetailStatus.setText(isCompleted ? "Trọn bộ" : "Đang chiếu");
         tvDetailStatus.setTextColor(ContextCompat.getColor(this, isCompleted ? android.R.color.holo_green_light : android.R.color.holo_orange_light));
 
-        // Xử lý Actor & Director (An toàn cho mọi phiên bản Android)
         tvDetailDirector.setText(listToString(info.getDirector()));
         tvDetailActor.setText(listToString(info.getActor()));
 
-        // Country
         if (info.getCountry() != null && !info.getCountry().isEmpty()) {
             tvDetailCountry.setText(info.getCountry().get(0).getName());
         }
 
-        // Hình ảnh: Lưu ý domain phimimg.com
-        String url = info.getPosterUrl();
+        String finalImageUrl;
+        if (imageUrlFromIntent != null && !imageUrlFromIntent.isEmpty()) {
+            finalImageUrl = imageUrlFromIntent;
+        } else {
+            String url = info.getPosterUrl();
+            finalImageUrl = (url != null && url.startsWith("http")) ? url : "https://phimimg.com/" + url;
+        }
+
         Glide.with(this)
-                .load(url != null && url.startsWith("http") ? url : "https://phimimg.com/" + url)
+                .load(finalImageUrl)
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
                 .into(imgDetailPoster);
     }
 

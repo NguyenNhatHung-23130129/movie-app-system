@@ -102,10 +102,10 @@ public class HomeFragment extends BaseFragment {
                 categoryList.clear();
                 categoryList.addAll(categories);
 
-                setupCategoryRecyclerView(rvGenresContinue, continueWatchingAdapter, null);
-                setupCategoryRecyclerView(rvGenresNew, newMoviesAdapter, null);
-                setupCategoryRecyclerView(rvGenresSeries, seriesAdapter, "series");
-                setupCategoryRecyclerView(rvGenresSingle, singleMoviesAdapter, "single");
+                setupCategoryRecyclerView(rvGenresContinue, rvContinueWatching, continueWatchingAdapter, null);
+                setupCategoryRecyclerView(rvGenresNew, rvNewMovies, newMoviesAdapter, null);
+                setupCategoryRecyclerView(rvGenresSeries, rvSeries, seriesAdapter, "series");
+                setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
             }
         });
     }
@@ -132,30 +132,44 @@ public class HomeFragment extends BaseFragment {
 
     private void updateHeroSection(MovieItem movie) {
         tvHeroTitle.setText(movie.getName());
-        imgHeroPoster.post(() -> Glide.with(this).load(movie.getThumbUrl()).into(imgHeroPoster));
+        imgHeroPoster.post(() -> Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster));
         btnHeroDetail.setOnClickListener(v -> startActivity(new Intent(requireContext(), MovieDetailActivity.class)
                 .putExtra("movie_slug", movie.getSlug())));
     }
 
-    // Sửa hàm setupCategoryRecyclerView để rõ ràng hơn
-    private void setupCategoryRecyclerView(RecyclerView rv, MovieAdapter targetAdapter, String filterType) {
-        if (rv == null) return;
-        rv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+    private void setupCategoryRecyclerView(RecyclerView categoryRv, RecyclerView moviesRv, MovieAdapter targetAdapter, String filterType) {
+        if (categoryRv == null) return;
+        categoryRv.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         List<Category> categoryCopy = new ArrayList<>(categoryList);
 
         CategoryAdapter adapter = new CategoryAdapter(requireContext(), categoryCopy, category -> {
-            Log.d("DEBUG_FILTER", "Chọn thể loại: " + category.getSlug() + " | Lọc theo type: " + filterType);
-
-            // Gọi ViewModel với tham số type bổ sung
-            movieViewModel.getMoviesByPath("by_category", category.getSlug(), filterType)
-                    .observe(getViewLifecycleOwner(), movieList -> {
-                        if (movieList != null) {
-                            targetAdapter.setMovieList(movieList);
-                            rv.scrollToPosition(0);
-                        }
-                    });
+            if (category == null) {
+                loadDefaultDataForType(targetAdapter, filterType);
+            } else {
+                movieViewModel.getMoviesByPath("by_category", category.getSlug(), filterType)
+                        .observe(getViewLifecycleOwner(), movieList -> {
+                            if (movieList != null) {
+                                targetAdapter.setMovieList(movieList);
+                                if (moviesRv != null) {
+                                    moviesRv.scrollToPosition(0);
+                                }
+                            }
+                        });
+            }
         });
-        rv.setAdapter(adapter);
+        categoryRv.setAdapter(adapter);
+    }
+
+    private void loadDefaultDataForType(MovieAdapter adapter, String filterType) {
+        if ("series".equals(filterType)) {
+            movieViewModel.getMoviesByPath("by_type", "series", "series")
+                    .observe(getViewLifecycleOwner(), adapter::setMovieList);
+        } else if ("single".equals(filterType)) {
+            movieViewModel.getMoviesByPath("by_type", "single", "single")
+                    .observe(getViewLifecycleOwner(), adapter::setMovieList);
+        } else {
+            movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), adapter::setMovieList);
+        }
     }
 
     private void navigateToExplore(String movieType) {
