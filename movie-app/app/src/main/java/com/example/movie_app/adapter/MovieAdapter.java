@@ -1,5 +1,8 @@
 package com.example.movie_app.adapter;
 
+import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,9 +10,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.movie_app.R;
 
 import com.bumptech.glide.Glide;
+import com.example.movie_app.R;
+import com.example.movie_app.activities.MovieDetailActivity;
 import com.example.movie_app.models.MovieItem;
 
 import java.util.List;
@@ -17,15 +21,6 @@ import java.util.List;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
     private List<MovieItem> movieList;
-    private OnItemClickListener listener;
-
-    public interface OnItemClickListener {
-        void onItemClick(MovieItem movie);
-    }
-
-    public void setOnItemClickListener(OnItemClickListener listener) {
-        this.listener = listener;
-    }
 
     public MovieAdapter(List<MovieItem> movieList) {
         this.movieList = movieList;
@@ -46,27 +41,33 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     @Override
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
         MovieItem movie = movieList.get(position);
-
         if (movie == null) return;
-        android.util.Log.d("GLIDE_URL", "Link ảnh của phim " + movie.getName() + " là: " + movie.getPosterUrl());
+
+        Log.d("IMAGE_DEBUG", "Name: " + movie.getName() + " | Poster: " + movie.getPosterUrl() + " | Thumb: " + movie.getThumbUrl());
+
         holder.tvTitle.setText(movie.getName());
 
-        String fullImageUrl = movie.getThumbUrl();
-        if (fullImageUrl != null && !fullImageUrl.startsWith("http")) {
-            fullImageUrl = "https://phimimg.com/" + fullImageUrl;
-        }
+        String imageUrl = (movie.getFullThumbUrl() != null && !movie.getFullThumbUrl().isEmpty())
+                ? movie.getFullThumbUrl()
+                : movie.getFullPosterUrl();
+
+        Log.d("DEBUG_ADAPTER", "Final URL cho phim " + movie.getName() + " là: " + imageUrl);
 
         Glide.with(holder.itemView.getContext())
-                .load(fullImageUrl)
-                .placeholder(android.R.drawable.progress_horizontal)
-                .error(android.R.drawable.ic_menu_gallery)
+                .load(imageUrl)
+                .centerCrop()
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
                 .into(holder.imgPoster);
 
         holder.itemView.setOnClickListener(v -> {
-            int currentPosition = holder.getBindingAdapterPosition();
-            if (listener != null && currentPosition != RecyclerView.NO_POSITION) {
-                MovieItem clickedMovie = movieList.get(currentPosition);
-                listener.onItemClick(clickedMovie);
+            if (movie.getSlug() != null) {
+                Context context = holder.itemView.getContext();
+                Intent intent = new Intent(context, MovieDetailActivity.class);
+                intent.putExtra("movie_slug", movie.getSlug());
+                intent.putExtra("movie_image", imageUrl);
+                Log.d("DEBUG_INTENT_SEND", "Đang gửi intent với image: " + imageUrl);
+                context.startActivity(intent);
             }
         });
     }

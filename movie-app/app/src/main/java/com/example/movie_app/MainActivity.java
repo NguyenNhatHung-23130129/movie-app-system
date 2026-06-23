@@ -13,7 +13,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home_activity);
-
+        com.google.firebase.FirebaseApp.initializeApp(this);
         new Handler().postDelayed(() -> {
             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
             startActivity(intent);

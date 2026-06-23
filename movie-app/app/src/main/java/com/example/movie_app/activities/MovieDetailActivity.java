@@ -1,42 +1,42 @@
 package com.example.movie_app.activities;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
+import com.example.movie_app.adapter.MovieAdapter;
+import com.example.movie_app.models.Category;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
-import java.util.ArrayList;
+
+import java.util.List;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
     private MovieViewModel movieViewModel;
-
-    // View gốc của màn hình
-    private ImageView imgDetailPoster, btnDetailBack, btnDetailShare, btnDetailHeart;
+    private ImageView imgDetailPoster, btnDetailBack;
     private TextView tvDetailTitle, tvDetailSubInfo, tvDetailDescription, tvDetailTime;
     private TextView tvDetailDirector, tvDetailActor, tvDetailCountry, tvDetailStatus;
-    private LinearLayout btnWatchNow;
-    private View btnAddToMyList;
 
-    // 🛑 THÊM CÁC BIẾN CHO PHẦN TABS
     private LinearLayout tabDescription, tabComments, tabRelated;
     private TextView tvTabDescription, tvTabComments, tvTabRelated;
     private View viewDescLine, viewCommentLine, viewRelatedLine;
     private LinearLayout layoutTabDescriptionContent, layoutTabCommentsContent, layoutTabRelatedContent;
 
     private RecyclerView rvRelatedMovies;
-    private String currentCategorySlug = ""; // Lưu lại danh mục phim đang xem để chuyển sang màn hình Tìm kiếm/Khám phá
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,34 +44,34 @@ public class MovieDetailActivity extends AppCompatActivity {
         setContentView(R.layout.movie_detail);
 
         initViews();
-        setupTabClickListeners(); // Kích hoạt bộ lắng nghe đổi Tab
-
+        setupTabClickListeners();
+        String imageUrlFromIntent = getIntent().getStringExtra("movie_image");
+        Log.d("DEBUG_INTENT", "Nhận được từ Intent: " + imageUrlFromIntent);
+        if (getIntent().getExtras() != null) {
+            for (String key : getIntent().getExtras().keySet()) {
+                Log.d("DEBUG_INTENT", "Key tồn tại: " + key);
+            }
+        }
         btnDetailBack.setOnClickListener(v -> finish());
 
         String movieSlug = getIntent().getStringExtra("movie_slug");
-
+        Log.d("DEBUG_SLUG", "Slug: " + movieSlug);
         if (movieSlug != null) {
             movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
             movieViewModel.getMovieDetail(movieSlug).observe(this, response -> {
                 if (response != null && response.getMovie() != null) {
-                    bindMovieData(response.getMovie());
+                    bindMovieData(response.getMovie(), imageUrlFromIntent);
                 } else {
-                    Toast.makeText(this, "Không tìm thấy thông tin bộ phim!", Toast.LENGTH_LONG).show();
-                    finish();
+                    Log.e("DEBUG_API", "Response hoặc Movie bị null");
+                    Toast.makeText(this, "Không tìm thấy thông tin phim!", Toast.LENGTH_SHORT).show();
                 }
             });
-        } else {
-            Toast.makeText(this, "Đường dẫn phim không hợp lệ!", Toast.LENGTH_SHORT).show();
-            finish();
         }
     }
 
     private void initViews() {
-        // Ánh xạ cũ
         imgDetailPoster = findViewById(R.id.imgDetailPoster);
         btnDetailBack = findViewById(R.id.btnDetailBack);
-        btnDetailShare = findViewById(R.id.btnDetailShare);
-        btnDetailHeart = findViewById(R.id.btnDetailHeart);
         tvDetailTitle = findViewById(R.id.tvDetailTitle);
         tvDetailSubInfo = findViewById(R.id.tvDetailSubInfo);
         tvDetailTime = findViewById(R.id.tvDetailTime);
@@ -80,22 +80,16 @@ public class MovieDetailActivity extends AppCompatActivity {
         tvDetailActor = findViewById(R.id.tvDetailActor);
         tvDetailCountry = findViewById(R.id.tvDetailCountry);
         tvDetailStatus = findViewById(R.id.tvDetailStatus);
-        btnWatchNow = findViewById(R.id.btnWatchNow);
-        btnAddToMyList = findViewById(R.id.btnAddToMyList);
 
-        // 🛑 ÁNH XẠ CÁC BIẾN TABS MỚI THÊM
         tabDescription = findViewById(R.id.tabDescription);
         tabComments = findViewById(R.id.tabComments);
         tabRelated = findViewById(R.id.tabRelated);
-
         tvTabDescription = findViewById(R.id.tvTabDescription);
         tvTabComments = findViewById(R.id.tvTabComments);
         tvTabRelated = findViewById(R.id.tvTabRelated);
-
         viewDescLine = findViewById(R.id.viewDescLine);
         viewCommentLine = findViewById(R.id.viewCommentLine);
         viewRelatedLine = findViewById(R.id.viewRelatedLine);
-
         layoutTabDescriptionContent = findViewById(R.id.layoutTabDescriptionContent);
         layoutTabCommentsContent = findViewById(R.id.layoutTabCommentsContent);
         layoutTabRelatedContent = findViewById(R.id.layoutTabRelatedContent);
@@ -104,7 +98,57 @@ public class MovieDetailActivity extends AppCompatActivity {
         rvRelatedMovies.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
     }
 
-    // 🛑 THIẾT LẬP LOGIC CHUYỂN ĐỔI ẨN HIỆN TAB
+    private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {
+        tvDetailTitle.setText(info.getName());
+        tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
+        if (info.getCategory() != null && !info.getCategory().isEmpty()) {
+            StringBuilder genres = new StringBuilder();
+            for (int i = 0; i < info.getCategory().size(); i++) {
+                genres.append(info.getCategory().get(i).getName());
+                if (i < info.getCategory().size() - 1) genres.append(", ");
+            }
+            tvDetailSubInfo.setText(info.getYear() + " • " + genres.toString());
+        }
+
+        tvDetailTime.setText((info.getTime() != null ? info.getTime() : "N/A") + " • " + (info.getQuality() != null ? info.getQuality() : "HD"));
+
+        boolean isCompleted = "completed".equalsIgnoreCase(info.getStatus());
+        tvDetailStatus.setText(isCompleted ? "Trọn bộ" : "Đang chiếu");
+        tvDetailStatus.setTextColor(ContextCompat.getColor(this, isCompleted ? android.R.color.holo_green_light : android.R.color.holo_orange_light));
+
+        tvDetailDirector.setText(listToString(info.getDirector()));
+        tvDetailActor.setText(listToString(info.getActor()));
+
+        if (info.getCountry() != null && !info.getCountry().isEmpty()) {
+            tvDetailCountry.setText(info.getCountry().get(0).getName());
+        }
+
+        String finalImageUrl;
+        if (imageUrlFromIntent != null && !imageUrlFromIntent.isEmpty()) {
+            finalImageUrl = imageUrlFromIntent;
+        } else {
+            String url = info.getPosterUrl();
+            finalImageUrl = (url != null && url.startsWith("http")) ? url : "https://phimimg.com/" + url;
+        }
+
+        Glide.with(this)
+                .load(finalImageUrl)
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .into(imgDetailPoster);
+        loadRelatedMovies(info);
+    }
+
+    private String listToString(List<String> list) {
+        if (list == null || list.isEmpty()) return "Đang cập nhật";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < list.size(); i++) {
+            sb.append(list.get(i));
+            if (i < list.size() - 1) sb.append(", ");
+        }
+        return sb.toString();
+    }
+
     private void setupTabClickListeners() {
         tabDescription.setOnClickListener(v -> selectTab(1));
         tabComments.setOnClickListener(v -> selectTab(2));
@@ -112,120 +156,30 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     private void selectTab(int tabIndex) {
-        // Reset trạng thái chữ xám và ẩn thanh gạch chân đỏ
-        tvTabDescription.setTextColor(Color.parseColor("#8E8E93"));
-        tvTabComments.setTextColor(Color.parseColor("#8E8E93"));
-        tvTabRelated.setTextColor(Color.parseColor("#8E8E93"));
+        int gray = Color.parseColor("#8E8E93");
+        int white = Color.parseColor("#FFFFFF");
 
-        viewDescLine.setVisibility(View.INVISIBLE);
-        viewCommentLine.setVisibility(View.INVISIBLE);
-        viewRelatedLine.setVisibility(View.INVISIBLE);
+        tvTabDescription.setTextColor(gray); tvTabComments.setTextColor(gray); tvTabRelated.setTextColor(gray);
+        viewDescLine.setVisibility(View.INVISIBLE); viewCommentLine.setVisibility(View.INVISIBLE); viewRelatedLine.setVisibility(View.INVISIBLE);
+        layoutTabDescriptionContent.setVisibility(View.GONE); layoutTabCommentsContent.setVisibility(View.GONE); layoutTabRelatedContent.setVisibility(View.GONE);
 
-        layoutTabDescriptionContent.setVisibility(View.GONE);
-        layoutTabCommentsContent.setVisibility(View.GONE);
-        layoutTabRelatedContent.setVisibility(View.GONE);
-
-        // Kích hoạt tab được lựa chọn
-        switch (tabIndex) {
-            case 1:
-                tvTabDescription.setTextColor(Color.parseColor("#FFFFFF"));
-                viewDescLine.setVisibility(View.VISIBLE);
-                layoutTabDescriptionContent.setVisibility(View.VISIBLE);
-                break;
-            case 2:
-                tvTabComments.setTextColor(Color.parseColor("#FFFFFF"));
-                viewCommentLine.setVisibility(View.VISIBLE);
-                layoutTabCommentsContent.setVisibility(View.VISIBLE);
-                break;
-            case 3:
-                tvTabRelated.setTextColor(Color.parseColor("#FFFFFF"));
-                viewRelatedLine.setVisibility(View.VISIBLE);
-                layoutTabRelatedContent.setVisibility(View.VISIBLE);
-                break;
+        if (tabIndex == 1) {
+            tvTabDescription.setTextColor(white); viewDescLine.setVisibility(View.VISIBLE); layoutTabDescriptionContent.setVisibility(View.VISIBLE);
+        } else if (tabIndex == 2) {
+            tvTabComments.setTextColor(white); viewCommentLine.setVisibility(View.VISIBLE); layoutTabCommentsContent.setVisibility(View.VISIBLE);
+        } else {
+            tvTabRelated.setTextColor(white); viewRelatedLine.setVisibility(View.VISIBLE); layoutTabRelatedContent.setVisibility(View.VISIBLE);
         }
     }
 
-    private void bindMovieData(MovieDetailResponse.MovieInfo info) {
-        tvDetailTitle.setText(info.getName());
-        tvDetailDescription.setText(info.getContent());
-
-        // Lấy danh mục thể loại đầu tiên để phục vụ mục "Xem thêm" sau này
-        if (info.getCategory() != null && !info.getCategory().isEmpty()) {
-            currentCategorySlug = info.getCategory().get(0).getSlug();
-        }
-
-        StringBuilder genresBuilder = new StringBuilder();
-        if (info.getCategory() != null && !info.getCategory().isEmpty()) {
-            for (int i = 0; i < info.getCategory().size(); i++) {
-                genresBuilder.append(info.getCategory().get(i).getName());
-                if (i < info.getCategory().size() - 1) genresBuilder.append(", ");
-            }
-        }
-        String genresStr = genresBuilder.toString();
-        tvDetailSubInfo.setText(info.getYear() + "  •  " + (genresStr.isEmpty() ? "Đang cập nhật" : genresStr));
-
-        String movieTime = info.getTime();
-        if (movieTime != null && !movieTime.isEmpty()) {
-            tvDetailTime.setText(movieTime + "  •  4K Ultra HD");
-        } else {
-            tvDetailTime.setText("N/A  •  4K Ultra HD");
-        }
-
-        // --- Các dòng hiển thị Đạo diễn, diễn viên, quốc gia giữ nguyên ---
-        if (info.getDirector() != null && !info.getDirector().isEmpty() && info.getDirector().get(0) != null) {
-            tvDetailDirector.setText(String.valueOf(info.getDirector().get(0)));
-        } else {
-            tvDetailDirector.setText("Đang cập nhật");
-        }
-        if (info.getActor() != null && !info.getActor().isEmpty() && info.getActor().get(0) != null) {
-            tvDetailActor.setText(String.valueOf(info.getActor().get(0)));
-        } else {
-            tvDetailActor.setText("Vô danh");
-        }
-        if (info.getCountry() != null && !info.getCountry().isEmpty()) {
-            tvDetailCountry.setText(info.getCountry().get(0).getName());
-        } else {
-            tvDetailCountry.setText("Không rõ");
-        }
-        if ("completed".equalsIgnoreCase(info.getMovieStatus())) {
-            tvDetailStatus.setText("Trọn bộ");
-            tvDetailStatus.setTextColor(getResources().getColor(android.R.color.holo_green_light));
-        } else {
-            tvDetailStatus.setText("Đang chiếu");
-            tvDetailStatus.setTextColor(getResources().getColor(android.R.color.holo_orange_light));
-        }
-
-        String fullImageUrl = info.getPosterUrl();
-        if (fullImageUrl != null && !fullImageUrl.startsWith("http")) {
-            fullImageUrl = "https://phimimg.com/" + fullImageUrl;
-        }
-        Glide.with(this).load(fullImageUrl)
-                .placeholder(android.R.drawable.progress_horizontal)
-                .error(android.R.drawable.ic_menu_gallery).into(imgDetailPoster);
-
-        // NẠP DỮ LIỆU PHIM LIÊN QUAN (Sử dụng tạm danh sách giả lập)
-        setupRelatedMoviesRecyclerView();
-    }
-
-    private void setupRelatedMoviesRecyclerView() {
-        // Thêm danh sách phim demo gồm 5 phim thật, phần tử thứ 6 đóng vai trò là nút "Xem thêm"
-        ArrayList<String> mockList = new ArrayList<>();
-        mockList.add("Phim 1");
-        mockList.add("Phim 2");
-        mockList.add("Phim 3");
-        mockList.add("Phim 4");
-        mockList.add("Phim 5");
-        mockList.add("SEE_MORE_NODE"); // Node đặc biệt để adapter vẽ chữ "Xem thêm" ở cuối dòng
-
-        // Ở đây, bạn gán Adapter phim liên quan của bạn vào (Ví dụ: RelatedMovieAdapter)
-        // Trong Adapter đó, khi phát hiện item cuối là "SEE_MORE_NODE" và người dùng click vào,
-        // bạn thực hiện gọi ý định quay về màn hình Khám Phá:
-        /*
-        Intent intent = new Intent(this, HomeActivity.class);
-        intent.putExtra("action_tab", "explore");
-        intent.putExtra("filter_category", currentCategorySlug);
-        startActivity(intent);
-        finish(); // Tắt chi tiết phim đi để lộ trang Home kèm bộ lọc
-        */
+    private void loadRelatedMovies(MovieDetailResponse.MovieDetail info) {
+        movieViewModel.getRelatedMovies(info.getSlug(), info.getCategory())
+                .observe(this, relatedList -> {
+                    if (relatedList != null) {
+                        relatedList.removeIf(m -> m.getSlug().equals(info.getSlug()));
+                        MovieAdapter relatedAdapter = new MovieAdapter(relatedList);
+                        rvRelatedMovies.setAdapter(relatedAdapter);
+                    }
+                });
     }
 }

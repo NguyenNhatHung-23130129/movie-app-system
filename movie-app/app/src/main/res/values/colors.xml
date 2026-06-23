@@ -9,4 +9,5 @@
     <color name="colorTextPrimary">#FFFFFF</color>
     <color name="colorTextSecondary">#8C8C8C</color>
     <color name="colorDivider">#333333</color>
+    <color name="light_gray">#D3D3D3</color>
 </resources>
