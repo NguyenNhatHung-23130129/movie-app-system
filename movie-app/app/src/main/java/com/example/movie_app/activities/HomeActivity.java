@@ -1,7 +1,9 @@
 package com.example.movie_app.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -24,6 +26,12 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         initNavigation();
+
+        Button btnGoToLogin = findViewById(R.id.btnGoToLogin);
+        btnGoToLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void initNavigation() {
