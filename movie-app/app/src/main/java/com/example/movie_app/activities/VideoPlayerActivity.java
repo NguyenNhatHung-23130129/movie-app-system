@@ -44,6 +44,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_player);
 
+        viewModel = new ViewModelProvider(this,
+                new ViewModelProvider.AndroidViewModelFactory(this.getApplication()))
+                .get(VideoPlayerViewModel.class);
+
 
         firebaseAuth = FirebaseAuth.getInstance();
 

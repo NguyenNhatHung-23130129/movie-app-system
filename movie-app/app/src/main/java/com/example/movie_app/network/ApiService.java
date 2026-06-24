@@ -43,12 +43,6 @@ public interface ApiService {
     @GET("api/v1/movies/search")
     Call<List<MovieItem>> searchMovies(@Query("keyword") String keyword);
 
-    @POST("/api/v1/resume/save")
-    Call<ResumeData> saveResumeData(@Body ResumeData resumeData);
 
-    @GET("/api/v1/resume/{movieId}")
-    Call<ResumeData> getResumeData(@Path("movieId") String movieId);
 
-    @DELETE("/api/v1/resume/{movieId}")
-    Call<Void> deleteResumeData(@Path("movieId") String movieId);
 }

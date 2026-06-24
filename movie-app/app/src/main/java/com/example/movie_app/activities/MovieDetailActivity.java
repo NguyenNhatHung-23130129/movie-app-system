@@ -1,5 +1,6 @@
 package com.example.movie_app.activities;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.models.Category;
+import com.example.movie_app.models.Movie;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
 
@@ -38,6 +40,9 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     private RecyclerView rvRelatedMovies;
 
+    private LinearLayout btnWatchNow;
+    private MovieDetailResponse.MovieDetail currentMovieDetail;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +50,8 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         initViews();
         setupTabClickListeners();
+        setupWatchNowButton();
+
         String imageUrlFromIntent = getIntent().getStringExtra("movie_image");
         Log.d("DEBUG_INTENT", "Nhận được từ Intent: " + imageUrlFromIntent);
         if (getIntent().getExtras() != null) {
@@ -60,6 +67,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
             movieViewModel.getMovieDetail(movieSlug).observe(this, response -> {
                 if (response != null && response.getMovie() != null) {
+                    currentMovieDetail = response.getMovie();
                     bindMovieData(response.getMovie(), imageUrlFromIntent);
                 } else {
                     Log.e("DEBUG_API", "Response hoặc Movie bị null");
@@ -81,6 +89,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         tvDetailCountry = findViewById(R.id.tvDetailCountry);
         tvDetailStatus = findViewById(R.id.tvDetailStatus);
 
+        btnWatchNow = findViewById(R.id.btnWatchNow);
+
         tabDescription = findViewById(R.id.tabDescription);
         tabComments = findViewById(R.id.tabComments);
         tabRelated = findViewById(R.id.tabRelated);
@@ -96,6 +106,69 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         rvRelatedMovies = findViewById(R.id.rvRelatedMovies);
         rvRelatedMovies.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+    }
+
+    private void setupWatchNowButton() {
+        btnWatchNow.setOnClickListener(v -> {
+            if (currentMovieDetail == null) {
+                Toast.makeText(MovieDetailActivity.this, "Thông tin phim chưa tải xong!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Log.d("WATCH_NOW", "Click Xem Ngay - Movie: " + currentMovieDetail.getName());
+
+            // ✅ Gọi API để lấy episodes
+            if (movieViewModel == null) {
+                movieViewModel = new ViewModelProvider(MovieDetailActivity.this).get(MovieViewModel.class);
+            }
+
+            movieViewModel.getMovieDetail(currentMovieDetail.getSlug()).observe(MovieDetailActivity.this, response -> {
+                if (response != null && response.getEpisodes() != null && !response.getEpisodes().isEmpty()) {
+
+                    // Lấy server đầu tiên
+                    MovieDetailResponse.EpisodeServer firstServer = response.getEpisodes().get(0);
+
+                    if (firstServer.getServerData() != null && !firstServer.getServerData().isEmpty()) {
+
+                        // Lấy tập đầu tiên
+                        MovieDetailResponse.EpisodeData firstEpisode = firstServer.getServerData().get(0);
+                        String videoUrl = firstEpisode.getLinkM3u8();
+
+                        Log.d("WATCH_NOW", "Server Name: " + firstServer.getServerName());
+                        Log.d("WATCH_NOW", "First Episode: " + firstEpisode.getName());
+                        Log.d("WATCH_NOW", "Video URL: " + videoUrl);
+
+                        if (videoUrl != null && !videoUrl.isEmpty()) {
+                            //  Tạo Movie object
+                            Movie movie = new Movie();
+                            movie.setMovieId(currentMovieDetail.getSlug());
+                            movie.setTitle(currentMovieDetail.getName());
+                            movie.setVideoUrl(videoUrl);
+                            movie.setDescription(currentMovieDetail.getContent());
+                            movie.setPosterUrl(currentMovieDetail.getPosterUrl());
+
+                            //  Tính số tập
+                            int totalEpisodes = firstServer.getServerData().size();
+                            movie.setEpisodes(totalEpisodes);
+                            movie.setCurrentEpisode(1);
+                            movie.setRating(4.5);
+
+                            Log.d("WATCH_NOW", "Total episodes: " + totalEpisodes);
+
+                            //  GỬI QUA INTENT
+                            Intent intent = new Intent(MovieDetailActivity.this, VideoPlayerActivity.class);
+                            intent.putExtra("movie", movie);
+                            startActivity(intent);
+
+                            return;
+                        }
+                    }
+                }
+
+                Toast.makeText(MovieDetailActivity.this, "Không tìm thấy video phim!", Toast.LENGTH_SHORT).show();
+                Log.e("WATCH_NOW", "No episodes found or video URL is empty");
+            });
+        });
     }
 
     private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {

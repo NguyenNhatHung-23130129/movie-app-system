@@ -1,6 +1,12 @@
 package com.example.movie_app.models;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "resume_data")
 public class ResumeData {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
     private String movieId;
     private String movieTitle;
     private long currentPosition;
@@ -42,4 +48,15 @@ public class ResumeData {
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
+
+    @Override
+    public String toString() {
+        return "ResumeData{" +
+                "movieId='" + movieId + '\'' +
+                ", movieTitle='" + movieTitle + '\'' +
+                ", currentPosition=" + currentPosition + '\'' +
+                ", currentEpisode=" + currentEpisode + '\'' +
+                ", lastWatchedTime='" + lastWatchedTime + '\'' +
+                '}';
+    }
 }
