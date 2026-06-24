@@ -153,8 +153,12 @@ public class HomeFragment extends BaseFragment {
     private void updateHeroSection(MovieItem movie) {
         tvHeroTitle.setText(movie.getName());
         imgHeroPoster.post(() -> Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster));
-        btnHeroDetail.setOnClickListener(v -> startActivity(new Intent(requireContext(), MovieDetailActivity.class)
-                .putExtra("movie_slug", movie.getSlug())));
+        btnHeroDetail.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), MovieDetailActivity.class);
+            intent.putExtra("movie_slug", movie.getSlug());
+            intent.putExtra("movie_image", movie.getPosterUrl());
+            startActivity(intent);
+        });
     }
 
     private void setupCategoryRecyclerView(RecyclerView categoryRv, RecyclerView moviesRv, MovieAdapter targetAdapter, String filterType) {
