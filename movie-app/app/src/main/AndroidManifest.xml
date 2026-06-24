@@ -39,6 +39,10 @@
             android:name=".activities.SearchActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.LoginActivity" />
+        <activity
+            android:name=".activities.RegisterActivity" />
     </application>
 
 </manifest>
