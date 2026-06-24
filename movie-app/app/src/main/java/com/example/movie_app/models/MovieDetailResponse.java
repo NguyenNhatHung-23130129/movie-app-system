@@ -23,7 +23,9 @@ public class MovieDetailResponse {
     @PropertyName("episodes") public void setEpisodes(List<EpisodeServer> episodes) { this.episodes = episodes; }
 
     public static class MovieDetail {
-        @SerializedName("_id") @PropertyName("id") private String id;
+        @SerializedName(value = "id", alternate = {"_id"})
+        @PropertyName("id")
+        private String id;
         @SerializedName("name") @PropertyName("name") private String name;
         @SerializedName("slug") @PropertyName("slug") private String slug;
         @SerializedName("poster_url") @PropertyName("poster_url") private String posterUrl;

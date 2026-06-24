@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -43,6 +44,17 @@ public class HomeFragment extends BaseFragment {
     private List<Category> categoryList = new ArrayList<>();
     private MovieViewModel movieViewModel;
     private RecommendationEngine recommendationEngine;
+
+    private boolean isFirstLoad = true;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!isFirstLoad) {
+            loadRecommendedMovies();
+        }
+        isFirstLoad = false;
+    }
 
     @Nullable
     @Override
@@ -103,31 +115,44 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void loadRecommendedMovies() {
-        String lastWatchedSlug = PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getString("LAST_WATCHED_SLUG", null);
+        String currentUserId = "USER_ID_TEST";
+        movieViewModel.getPersonalizedRecommendations(currentUserId, requireContext())
+                .observe(getViewLifecycleOwner(), movieList -> {
+                    Log.d("DEBUG_UI", "Số lượng phim gợi ý nhận được: " + (movieList != null ? movieList.size() : "null"));
 
-        if (lastWatchedSlug != null) {
-            List<String> suggestedSlugs = recommendationEngine.getRecommendations(lastWatchedSlug, 6);
-            if (!suggestedSlugs.isEmpty()) {
-                movieViewModel.getMoviesBySlugs(suggestedSlugs).observe(getViewLifecycleOwner(), movieList -> {
-                    if (movieList != null) recommendedAdapter.setMovieList(movieList);
+                    if (movieList != null && !movieList.isEmpty()) {
+                        recommendedAdapter.setMovieList(movieList);
+                        recommendedAdapter.notifyDataSetChanged();
+
+                        rvRecommendedMovies.setVisibility(View.VISIBLE);
+                        Log.d("AI_RECOMMEND", "Đã load " + movieList.size() + " phim gợi ý.");
+                    } else {
+                        Log.d("AI_RECOMMEND", "Chưa có gợi ý nào.");
+                        rvRecommendedMovies.setVisibility(View.GONE);
+                    }
                 });
-            }
-        }
     }
 
     private void loadCategories() {
-        movieViewModel.getGenres().observe(getViewLifecycleOwner(), categories -> {
-            if (categories != null && !categories.isEmpty()) {
-                categoryList.clear();
-                categoryList.addAll(categories);
+        if (movieViewModel == null) return;
 
-                setupCategoryRecyclerView(rvGenresContinue, rvContinueWatching, continueWatchingAdapter, null);
-                setupCategoryRecyclerView(rvGenresNew, rvNewMovies, newMoviesAdapter, null);
-                setupCategoryRecyclerView(rvGenresSeries, rvSeries, seriesAdapter, "series");
-                setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
-            }
-        });
+        LiveData<List<Category>> genreLiveData = movieViewModel.getGenres();
+
+        if (genreLiveData != null) {
+            genreLiveData.observe(getViewLifecycleOwner(), categories -> {
+                if (categories != null && !categories.isEmpty()) {
+                    categoryList.clear();
+                    categoryList.addAll(categories);
+
+                    setupCategoryRecyclerView(rvGenresContinue, rvContinueWatching, continueWatchingAdapter, null);
+                    setupCategoryRecyclerView(rvGenresNew, rvNewMovies, newMoviesAdapter, null);
+                    setupCategoryRecyclerView(rvGenresSeries, rvSeries, seriesAdapter, "series");
+                    setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
+                }
+            });
+        } else {
+            Log.e("HOME_FRAGMENT", "Repository trả về null cho genres");
+        }
     }
 
     private void loadDataFromFirebase() {
@@ -151,10 +176,14 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void updateHeroSection(MovieItem movie) {
+        if (movie == null) return;
+
         tvHeroTitle.setText(movie.getName());
         imgHeroPoster.post(() -> Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster));
+
         btnHeroDetail.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), MovieDetailActivity.class);
+            Log.d("DEBUG_FIX", "Slug gửi đi: " + movie.getSlug());
             intent.putExtra("movie_slug", movie.getSlug());
             intent.putExtra("movie_image", movie.getPosterUrl());
             startActivity(intent);

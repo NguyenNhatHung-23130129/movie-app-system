@@ -5,13 +5,16 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import com.example.movie_app.dao.HistoryDao;
 import com.example.movie_app.entity.UserEntity;
+import com.example.movie_app.entity.WatchHistoryEntity;
 
-@Database(entities = {UserEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {UserEntity.class, WatchHistoryEntity.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
-    // Đây là nơi khai báo các DAO
-    // public abstract UserDao userDao();
+    // Khai báo các DAO để có thể sử dụng
+    //public abstract UserDao userDao();
+    public abstract HistoryDao historyDao();
 
     private static volatile AppDatabase INSTANCE;
 
