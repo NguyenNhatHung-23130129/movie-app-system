@@ -1,7 +1,6 @@
 package com.example.movie_app.repository;
 
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -29,15 +28,11 @@ public class MovieRepository {
         call.enqueue(new Callback<KKPhimListResponse>() {
             @Override public void onResponse(Call<KKPhimListResponse> call, Response<KKPhimListResponse> res) {
                 if (res.isSuccessful() && res.body() != null) {
-                    Log.d(TAG, "API List Success: " + res.body().getItems().size() + " items loaded.");
-                    liveData.setValue(res.body().getItems());
-                } else {
-                    Log.e(TAG, "API List Error: " + res.code());
+                    liveData.postValue(res.body().getItems());
                 }
             }
             @Override public void onFailure(Call<KKPhimListResponse> call, Throwable t) {
-                Log.e(TAG, "API List Failure: " + t.getMessage());
-                liveData.setValue(null);
+                liveData.postValue(null);
             }
         });
         return liveData;
@@ -48,15 +43,11 @@ public class MovieRepository {
         call.enqueue(new Callback<KKPhimV1Response>() {
             @Override public void onResponse(Call<KKPhimV1Response> call, Response<KKPhimV1Response> res) {
                 if (res.isSuccessful() && res.body() != null && res.body().getData() != null) {
-                    Log.d(TAG, "API V1 Success: " + res.body().getData().getItems().size() + " items loaded.");
-                    liveData.setValue(res.body().getData().getItems());
-                } else {
-                    Log.e(TAG, "API V1 Error: Empty data or response");
+                    liveData.postValue(res.body().getData().getItems());
                 }
             }
             @Override public void onFailure(Call<KKPhimV1Response> call, Throwable t) {
-                Log.e(TAG, "API V1 Failure: " + t.getMessage());
-                liveData.setValue(null);
+                liveData.postValue(null);
             }
         });
         return liveData;
@@ -70,90 +61,114 @@ public class MovieRepository {
                         List<MovieItem> list = new ArrayList<>();
                         for (DataSnapshot child : snapshot.getChildren()) {
                             MovieItem movie = child.getValue(MovieItem.class);
-                            if (movie != null) {
-                                list.add(movie);
-                            }
+                            if (movie != null) list.add(movie);
                         }
-                        liveData.setValue(list);
+                        liveData.postValue(list);
                     }
-                    @Override public void onCancelled(DatabaseError error) {
-                        Log.e(TAG, "Firebase Failure: " + error.getMessage());
-                    }
+                    @Override public void onCancelled(DatabaseError error) { liveData.postValue(null); }
                 });
         return liveData;
-    }
-
-    public LiveData<List<MovieItem>> getLatestMovies(int page) {
-        return handleListResponse(apiService.getLatestMovies(page));
-    }
-
-    public LiveData<List<MovieItem>> getSeriesMovies(int page) {
-        return handleV1Response(apiService.getSeriesMovies(page));
     }
 
     public LiveData<List<MovieItem>> getMoviesByPath(String path, String slug, String typeFilter) {
         MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
         DatabaseReference rootRef = FirebaseDatabase.getInstance(FIREBASE_URL).getReference();
-
-        DatabaseReference movieListRef;
-        if ("by_category".equals(path)) {
-            movieListRef = rootRef.child(path).child(slug).child("movies");
-        } else {
-            movieListRef = rootRef.child(path).child(slug);
-        }
+        DatabaseReference movieListRef = "by_category".equals(path) ? rootRef.child(path).child(slug).child("movies") : rootRef.child(path).child(slug);
 
         movieListRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 List<String> movieSlugs = new ArrayList<>();
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    movieSlugs.add(child.getKey());
-                }
+                for (DataSnapshot child : snapshot.getChildren()) movieSlugs.add(child.getKey());
 
                 if (movieSlugs.isEmpty()) {
-                    liveData.setValue(new ArrayList<>());
+                    liveData.postValue(new ArrayList<>());
                     return;
                 }
 
                 List<MovieItem> filteredList = new ArrayList<>();
                 final int[] count = {0};
-
                 for (String movieSlug : movieSlugs) {
-                    rootRef.child("movies").child(movieSlug)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot movieSnapshot) {
-                                    MovieItem movie = movieSnapshot.getValue(MovieItem.class);
-
-                                    // KIỂM TRA LỌC: Chỉ thêm vào danh sách nếu type khớp với typeFilter
-                                    if (movie != null) {
-                                        if (typeFilter == null || typeFilter.isEmpty() ||
-                                                typeFilter.equalsIgnoreCase(movie.getType())) {
-                                            filteredList.add(movie);
-                                        }
-                                    }
-
-                                    count[0]++;
-                                    if (count[0] == movieSlugs.size()) {
-                                        liveData.setValue(filteredList);
-                                    }
-                                }
-                                @Override public void onCancelled(DatabaseError error) {
-                                    count[0]++;
-                                    if (count[0] == movieSlugs.size()) liveData.setValue(filteredList);
-                                }
-                            });
+                    rootRef.child("movies").child(movieSlug).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot movieSnapshot) {
+                            MovieItem movie = movieSnapshot.getValue(MovieItem.class);
+                            if (movie != null && (typeFilter == null || typeFilter.isEmpty() || typeFilter.equalsIgnoreCase(movie.getType()))) {
+                                filteredList.add(movie);
+                            }
+                            count[0]++;
+                            if (count[0] == movieSlugs.size()) liveData.postValue(filteredList);
+                        }
+                        @Override public void onCancelled(DatabaseError error) {
+                            count[0]++;
+                            if (count[0] == movieSlugs.size()) liveData.postValue(filteredList);
+                        }
+                    });
                 }
             }
-            @Override public void onCancelled(DatabaseError error) { liveData.setValue(null); }
+            @Override public void onCancelled(DatabaseError error) { liveData.postValue(null); }
         });
         return liveData;
     }
 
-    public LiveData<List<MovieItem>> getSingleMovies(int page) {
-        return handleV1Response(apiService.getSingleMovies(page));
+    public LiveData<MovieDetailResponse> getMovieDetail(String slug) {
+        MutableLiveData<MovieDetailResponse> liveData = new MutableLiveData<>();
+        apiService.getMovieDetail(slug).enqueue(new Callback<MovieDetailResponse>() {
+            @Override public void onResponse(Call<MovieDetailResponse> call, Response<MovieDetailResponse> response) {
+                liveData.postValue(response.isSuccessful() ? response.body() : null);
+            }
+            @Override public void onFailure(Call<MovieDetailResponse> call, Throwable t) {
+                liveData.postValue(null);
+            }
+        });
+        return liveData;
     }
 
+    private LiveData<List<MovieItem>> handleDirectListResponse(Call<List<MovieItem>> call) {
+        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
+        call.enqueue(new Callback<List<MovieItem>>() {
+            @Override public void onResponse(Call<List<MovieItem>> call, Response<List<MovieItem>> res) {
+                liveData.postValue(res.isSuccessful() ? res.body() : null);
+            }
+            @Override public void onFailure(Call<List<MovieItem>> call, Throwable t) {
+                liveData.postValue(null);
+            }
+        });
+        return liveData;
+    }
+
+    public LiveData<List<MovieItem>> getMoviesByListSlugs(List<String> movieSlugs) {
+        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
+        if (movieSlugs == null || movieSlugs.isEmpty()) {
+            liveData.postValue(new ArrayList<>());
+            return liveData;
+        }
+
+        List<MovieItem> movieList = new ArrayList<>();
+        DatabaseReference moviesRef = FirebaseDatabase.getInstance(FIREBASE_URL).getReference("movies");
+        final int[] count = {0};
+
+        for (String slug : movieSlugs) {
+            moviesRef.child(slug).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    MovieItem movie = snapshot.getValue(MovieItem.class);
+                    if (movie != null) movieList.add(movie);
+                    count[0]++;
+                    if (count[0] == movieSlugs.size()) liveData.postValue(movieList);
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {
+                    count[0]++;
+                    if (count[0] == movieSlugs.size()) liveData.postValue(movieList);
+                }
+            });
+        }
+        return liveData;
+    }
+
+    public LiveData<List<MovieItem>> getLatestMovies(int page) { return handleListResponse(apiService.getLatestMovies(page)); }
+    public LiveData<List<MovieItem>> getSeriesMovies(int page) { return handleV1Response(apiService.getSeriesMovies(page)); }
+    public LiveData<List<MovieItem>> getSingleMovies(int page) { return handleV1Response(apiService.getSingleMovies(page)); }
     public LiveData<List<Category>> getGenres() {
         MutableLiveData<List<Category>> liveData = new MutableLiveData<>();
 
@@ -162,7 +177,6 @@ public class MovieRepository {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         List<Category> list = new ArrayList<>();
-
                         for (DataSnapshot categorySnapshot : snapshot.getChildren()) {
                             String slug = categorySnapshot.getKey();
                             String name = categorySnapshot.child("name").getValue(String.class);
@@ -174,104 +188,16 @@ public class MovieRepository {
                                 list.add(category);
                             }
                         }
-                        liveData.setValue(list);
+                        liveData.postValue(list);
                     }
 
                     @Override
                     public void onCancelled(DatabaseError error) {
-                        Log.e(TAG, "Lỗi Firebase: " + error.getMessage());
-                        liveData.setValue(null);
+                        Log.e(TAG, "Lỗi Firebase Genres: " + error.getMessage());
+                        liveData.postValue(new ArrayList<>());
                     }
                 });
         return liveData;
     }
-
-    public LiveData<MovieDetailResponse> getMovieDetail(String slug) {
-        MutableLiveData<MovieDetailResponse> liveData = new MutableLiveData<>();
-        apiService.getMovieDetail(slug).enqueue(new Callback<MovieDetailResponse>() {
-            @Override
-            public void onResponse(Call<MovieDetailResponse> call, Response<MovieDetailResponse> response) {
-                if (response.body() != null) {
-                    Log.d("DETAIL_DEBUG", "JSON trả về: " + new com.google.gson.Gson().toJson(response.body()));
-                }
-
-                if (response.isSuccessful() && response.body() != null) {
-                    liveData.setValue(response.body());
-                } else {
-                    Log.e("DETAIL_DEBUG", "Lỗi: " + response.code());
-                    liveData.setValue(null);
-                }
-            }
-            @Override
-            public void onFailure(Call<MovieDetailResponse> call, Throwable t) {
-                liveData.setValue(null);
-            }
-        });
-        return liveData;
-    }
-
-    private LiveData<List<MovieItem>> handleDirectListResponse(Call<List<MovieItem>> call) {
-        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
-        call.enqueue(new Callback<List<MovieItem>>() {
-            @Override
-            public void onResponse(Call<List<MovieItem>> call, Response<List<MovieItem>> res) {
-                if (res.isSuccessful() && res.body() != null) {
-                    Log.d("SEARCH_DEBUG", "Thành công: " + res.body().size() + " items");
-                    liveData.setValue(res.body());
-                } else {
-                    Log.e("SEARCH_DEBUG", "API Error: " + res.code());
-                    liveData.setValue(null);
-                }
-            }
-            @Override
-            public void onFailure(Call<List<MovieItem>> call, Throwable t) {
-                Log.e("SEARCH_DEBUG", "Failure: " + t.getMessage());
-                liveData.setValue(null);
-            }
-        });
-        return liveData;
-    }
-
-    public LiveData<List<MovieItem>> searchMovies(String keyword) {
-        return handleDirectListResponse(apiService.searchMovies(keyword));
-    }
-
-    public LiveData<List<MovieItem>> getMoviesByListSlugs(List<String> movieSlugs) {
-        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
-        List<MovieItem> movieList = new ArrayList<>();
-
-        if (movieSlugs == null || movieSlugs.isEmpty()) {
-            liveData.setValue(movieList);
-            return liveData;
-        }
-
-        DatabaseReference moviesRef = FirebaseDatabase.getInstance(FIREBASE_URL).getReference("movies");
-        final int[] count = {0};
-
-        for (String slug : movieSlugs) {
-            moviesRef.child(slug).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    MovieItem movie = snapshot.getValue(MovieItem.class);
-                    if (movie != null) {
-                        movieList.add(movie);
-                    }
-
-                    count[0]++;
-                    if (count[0] == movieSlugs.size()) {
-                        liveData.setValue(movieList);
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    count[0]++;
-                    if (count[0] == movieSlugs.size()) {
-                        liveData.setValue(movieList);
-                    }
-                }
-            });
-        }
-        return liveData;
-    }
+    public LiveData<List<MovieItem>> searchMovies(String keyword) { return handleDirectListResponse(apiService.searchMovies(keyword)); }
 }

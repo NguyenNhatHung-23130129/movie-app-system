@@ -37,6 +37,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private LinearLayout layoutTabDescriptionContent, layoutTabCommentsContent, layoutTabRelatedContent;
 
     private RecyclerView rvRelatedMovies;
+    private LinearLayout btnWatchNow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private void initViews() {
         imgDetailPoster = findViewById(R.id.imgDetailPoster);
         btnDetailBack = findViewById(R.id.btnDetailBack);
+        btnWatchNow = findViewById(R.id.btnWatchNow);
         tvDetailTitle = findViewById(R.id.tvDetailTitle);
         tvDetailSubInfo = findViewById(R.id.tvDetailSubInfo);
         tvDetailTime = findViewById(R.id.tvDetailTime);
@@ -136,6 +138,25 @@ public class MovieDetailActivity extends AppCompatActivity {
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(imgDetailPoster);
+
+        btnWatchNow.setOnClickListener(v -> {
+            if (info != null && info.getId() != null && !info.getId().trim().isEmpty()) {
+                String currentUserId = "USER_ID_TEST";
+
+                movieViewModel.saveToHistory(
+                        info.getSlug(),
+                        currentUserId,
+                        info.getName(),
+                        finalImageUrl
+                );
+
+                Toast.makeText(this, "Đã lưu vào lịch sử: " + info.getName(), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Lỗi: Không thể lưu phim này!", Toast.LENGTH_SHORT).show();
+                Log.e("DEBUG_SAVE", "Movie ID bị null hoặc rỗng");
+            }
+        });
+
         loadRelatedMovies(info);
     }
 
