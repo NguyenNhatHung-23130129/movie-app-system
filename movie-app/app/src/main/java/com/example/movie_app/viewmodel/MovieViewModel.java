@@ -7,6 +7,8 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.movie_app.models.*;
 import com.example.movie_app.repository.MovieRepository;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class MovieViewModel extends ViewModel {
@@ -57,5 +59,9 @@ public class MovieViewModel extends ViewModel {
             }
         });
         return relatedLiveData;
+    }
+
+    public LiveData<List<MovieItem>> getMoviesBySlugs(List<String> slugs) {
+        return movieRepository.getMoviesByListSlugs(slugs);
     }
 }

@@ -2,6 +2,7 @@ package com.example.movie_app.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +25,7 @@ import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.adapter.CategoryAdapter;
 import com.example.movie_app.models.Category;
 import com.example.movie_app.models.MovieItem;
+import com.example.movie_app.utils.RecommendationEngine;
 import com.example.movie_app.viewmodel.MovieViewModel;
 
 import java.util.ArrayList;
@@ -31,17 +33,16 @@ import java.util.List;
 
 public class HomeFragment extends BaseFragment {
 
-    private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies,
+    private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies, rvRecommendedMovies,
             rvGenresContinue, rvGenresNew, rvGenresSeries, rvGenresSingle;
     private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
     private ImageView imgHeroPoster;
     private Button btnHeroDetail;
-    private MovieAdapter activeAdapter;
 
-    private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter;
+    private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter, recommendedAdapter;
     private List<Category> categoryList = new ArrayList<>();
     private MovieViewModel movieViewModel;
-    private MovieItem heroMovie;
+    private RecommendationEngine recommendationEngine;
 
     @Nullable
     @Override
@@ -54,9 +55,11 @@ public class HomeFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         initViews(view);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
+        recommendationEngine = new RecommendationEngine(requireContext());
 
         loadCategories();
         loadDataFromFirebase();
+        loadRecommendedMovies();
     }
 
     private void initViews(View view) {
@@ -64,6 +67,8 @@ public class HomeFragment extends BaseFragment {
         rvNewMovies = view.findViewById(R.id.rvNewMovies);
         rvSeries = view.findViewById(R.id.rvSeries);
         rvSingleMovies = view.findViewById(R.id.rvSingleMovies);
+        rvRecommendedMovies = view.findViewById(R.id.rvRecommendedMovies);
+
         rvGenresContinue = view.findViewById(R.id.rvGenresContinue);
         rvGenresNew = view.findViewById(R.id.rvGenresNew);
         rvGenresSeries = view.findViewById(R.id.rvGenresSeries);
@@ -82,6 +87,7 @@ public class HomeFragment extends BaseFragment {
         newMoviesAdapter = setupMovieRecyclerView(rvNewMovies);
         seriesAdapter = setupMovieRecyclerView(rvSeries);
         singleMoviesAdapter = setupMovieRecyclerView(rvSingleMovies);
+        recommendedAdapter = setupMovieRecyclerView(rvRecommendedMovies);
 
         if (btnViewAllContinue != null) btnViewAllContinue.setOnClickListener(v -> navigateToExplore("LATEST"));
         if (btnViewAllNew != null) btnViewAllNew.setOnClickListener(v -> navigateToExplore("NEW"));
@@ -94,6 +100,20 @@ public class HomeFragment extends BaseFragment {
         MovieAdapter adapter = new MovieAdapter(new ArrayList<>());
         rv.setAdapter(adapter);
         return adapter;
+    }
+
+    private void loadRecommendedMovies() {
+        String lastWatchedSlug = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString("LAST_WATCHED_SLUG", null);
+
+        if (lastWatchedSlug != null) {
+            List<String> suggestedSlugs = recommendationEngine.getRecommendations(lastWatchedSlug, 6);
+            if (!suggestedSlugs.isEmpty()) {
+                movieViewModel.getMoviesBySlugs(suggestedSlugs).observe(getViewLifecycleOwner(), movieList -> {
+                    if (movieList != null) recommendedAdapter.setMovieList(movieList);
+                });
+            }
+        }
     }
 
     private void loadCategories() {
