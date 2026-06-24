@@ -2,6 +2,7 @@ package com.example.movie_app.repository;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.movie_app.models.*;
@@ -233,5 +234,44 @@ public class MovieRepository {
 
     public LiveData<List<MovieItem>> searchMovies(String keyword) {
         return handleDirectListResponse(apiService.searchMovies(keyword));
+    }
+
+    public LiveData<List<MovieItem>> getMoviesByListSlugs(List<String> movieSlugs) {
+        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
+        List<MovieItem> movieList = new ArrayList<>();
+
+        if (movieSlugs == null || movieSlugs.isEmpty()) {
+            liveData.setValue(movieList);
+            return liveData;
+        }
+
+        DatabaseReference moviesRef = FirebaseDatabase.getInstance(FIREBASE_URL).getReference("movies");
+        final int[] count = {0};
+
+        for (String slug : movieSlugs) {
+            moviesRef.child(slug).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    MovieItem movie = snapshot.getValue(MovieItem.class);
+                    if (movie != null) {
+                        movieList.add(movie);
+                    }
+
+                    count[0]++;
+                    if (count[0] == movieSlugs.size()) {
+                        liveData.setValue(movieList);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    count[0]++;
+                    if (count[0] == movieSlugs.size()) {
+                        liveData.setValue(movieList);
+                    }
+                }
+            });
+        }
+        return liveData;
     }
 }
