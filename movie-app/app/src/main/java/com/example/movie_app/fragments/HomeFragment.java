@@ -21,9 +21,11 @@ import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.HomeActivity;
 import com.example.movie_app.activities.MovieDetailActivity;
+import com.example.movie_app.activities.VideoPlayerActivity;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.adapter.CategoryAdapter;
 import com.example.movie_app.models.Category;
+import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.models.MovieItem;
 import com.example.movie_app.utils.RecommendationEngine;
 import com.example.movie_app.viewmodel.MovieViewModel;
@@ -37,7 +39,7 @@ public class HomeFragment extends BaseFragment {
             rvGenresContinue, rvGenresNew, rvGenresSeries, rvGenresSingle;
     private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
     private ImageView imgHeroPoster;
-    private Button btnHeroDetail;
+    private Button btnHeroDetail, btnHeroPlay;
 
     private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter, recommendedAdapter;
     private List<Category> categoryList = new ArrayList<>();
@@ -82,6 +84,7 @@ public class HomeFragment extends BaseFragment {
         imgHeroPoster = view.findViewById(R.id.imgHeroPoster);
         tvHeroTitle = view.findViewById(R.id.tvHeroTitle);
         btnHeroDetail = view.findViewById(R.id.btnHeroDetail);
+        btnHeroPlay = view.findViewById(R.id.btnHeroPlay);
 
         continueWatchingAdapter = setupMovieRecyclerView(rvContinueWatching);
         newMoviesAdapter = setupMovieRecyclerView(rvNewMovies);
@@ -151,10 +154,53 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void updateHeroSection(MovieItem movie) {
+        if (movie == null) return;
+
         tvHeroTitle.setText(movie.getName());
         imgHeroPoster.post(() -> Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster));
+
         btnHeroDetail.setOnClickListener(v -> startActivity(new Intent(requireContext(), MovieDetailActivity.class)
                 .putExtra("movie_slug", movie.getSlug())));
+
+        btnHeroPlay.setOnClickListener(v -> {
+            Log.d("HERO_PLAY", "Click Xem Ngay tại Home - Phim: " + movie.getName());
+
+            movieViewModel.getMovieDetail(movie.getSlug()).observe(getViewLifecycleOwner(), response -> {
+                if (response != null && response.getEpisodes() != null && !response.getEpisodes().isEmpty()) {
+
+                    MovieDetailResponse.EpisodeServer firstServer = response.getEpisodes().get(0);
+
+                    if (firstServer.getServerData() != null && !firstServer.getServerData().isEmpty()) {
+
+                        MovieDetailResponse.EpisodeData firstEpisode = firstServer.getServerData().get(0);
+                        String videoUrl = firstEpisode.getLinkM3u8();
+
+                        Log.d("HERO_PLAY", "Tìm thấy tập 1 thành công. URL: " + videoUrl);
+
+                        if (videoUrl != null && !videoUrl.isEmpty()) {
+                            com.example.movie_app.models.Movie playMovie = new com.example.movie_app.models.Movie();
+                            playMovie.setMovieId(movie.getSlug());
+                            playMovie.setTitle(movie.getName());
+                            playMovie.setVideoUrl(videoUrl);
+                            playMovie.setDescription(response.getMovie() != null ? response.getMovie().getContent() : "");
+                            playMovie.setPosterUrl(movie.getPosterUrl());
+
+                            int totalEpisodes = firstServer.getServerData().size();
+                            playMovie.setEpisodes(totalEpisodes);
+                            playMovie.setCurrentEpisode(1); // Mặc định chạy tập 1, Room sẽ tự động nhảy số tập cũ nếu có lịch sử xem
+                            playMovie.setRating(4.5);
+
+                            Intent intent = new Intent(requireContext(), VideoPlayerActivity.class);
+                            intent.putExtra("movie", playMovie);
+                            startActivity(intent);
+                            return;
+                        }
+                    }
+                }
+                android.widget.Toast.makeText(requireContext(), "Không tìm thấy video phát cho phim này!", android.widget.Toast.LENGTH_SHORT).show();
+                Log.e("HERO_PLAY", "Không lấy được Episodes hoặc Link M3U8 từ API");
+            });
+        });
     }
 
     private void setupCategoryRecyclerView(RecyclerView categoryRv, RecyclerView moviesRv, MovieAdapter targetAdapter, String filterType) {

@@ -9,7 +9,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.movie_app.models.Movie;
-import com.example.movie_app.models.ResumeData;
+import com.example.movie_app.models.ResumeData;  // ✅ Import ResumeData
 import com.example.movie_app.repository.VideoRepository;
 
 public class VideoPlayerViewModel extends AndroidViewModel {
@@ -23,6 +23,7 @@ public class VideoPlayerViewModel extends AndroidViewModel {
 
     public VideoPlayerViewModel(@NonNull Application application) {
         super(application);
+
         this.videoRepository = new VideoRepository(application);
         this.currentMovie = new MutableLiveData<>();
         this.errorMessage = new MutableLiveData<>();
@@ -37,7 +38,7 @@ public class VideoPlayerViewModel extends AndroidViewModel {
         currentMovie.postValue(movie);
     }
 
-    public LiveData<ResumeData> getResumeData() {
+    public LiveData<ResumeData> getResumeData() {  //
         return resumeData;
     }
 
@@ -49,7 +50,7 @@ public class VideoPlayerViewModel extends AndroidViewModel {
 
         resumeData.observeForever(resume -> {
             if (resume != null) {
-                Log.d(TAG, "✅ Resume found:");
+                Log.d(TAG, "Resume found:");
                 Log.d(TAG, "   Position: " + resume.getCurrentPosition() + " ms");
                 Log.d(TAG, "   Episode: " + resume.getCurrentEpisode());
             } else {
@@ -59,16 +60,14 @@ public class VideoPlayerViewModel extends AndroidViewModel {
         });
     }
 
-
     public void saveResumeData(String movieId, String movieTitle, long currentPosition,
                                long duration, int currentEpisode, String userId) {
         Log.d(TAG, "Saving resume data (Room DB):");
         Log.d(TAG, "  Position: " + currentPosition + " ms");
         Log.d(TAG, "  Episode: " + currentEpisode);
 
-        //  GỌI REPOSITORY ĐỂ LƯU VÀO ROOM
         videoRepository.saveResumeData(movieId, movieTitle, currentPosition,
-                duration, currentEpisode, userId);
+                duration, currentEpisode);
     }
 
     public void clearResumeData(String movieId) {

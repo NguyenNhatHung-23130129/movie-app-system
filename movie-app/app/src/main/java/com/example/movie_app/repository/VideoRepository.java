@@ -7,8 +7,7 @@ import androidx.lifecycle.LiveData;
 
 import com.example.movie_app.database.AppDatabase;
 import com.example.movie_app.database.ResumeDao;
-import com.example.movie_app.models.ResumeData;
-
+import com.example.movie_app.models.ResumeData;  // ✅ Import ResumeData thay vì ResumeEntity
 
 public class VideoRepository {
     private static final String TAG = "VideoRepository";
@@ -26,15 +25,14 @@ public class VideoRepository {
 
     public void saveResumeData(String movieId, String movieTitle,
                                long currentPosition, long duration,
-                               int currentEpisode, String userId) {
+                               int currentEpisode) {
         Log.d(TAG, "Saving resume data:");
         Log.d(TAG, "  Movie: " + movieTitle);
         Log.d(TAG, "  Position: " + currentPosition + " ms");
         Log.d(TAG, "  Episode: " + currentEpisode);
 
-
         ResumeData resume = new ResumeData(movieId, movieTitle,
-                currentPosition, duration, currentEpisode, userId);
+                currentPosition, duration, currentEpisode);
 
         new Thread(() -> {
             resumeDao.insertOrUpdateResume(resume);
@@ -50,7 +48,6 @@ public class VideoRepository {
             Log.d(TAG, "✅ Deleted from Room DB!");
         }).start();
     }
-
 
     public LiveData<java.util.List<ResumeData>> getAllResumes() {
         return resumeDao.getAllResumes();

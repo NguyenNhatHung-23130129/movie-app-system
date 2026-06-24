@@ -9,8 +9,8 @@ import androidx.room.RoomDatabase;
 import com.example.movie_app.models.ResumeData;
 
 @Database(
-        entities = {ResumeData.class},  // Danh sách các entity
-        version = 1,                       // Version của database
+        entities = {ResumeData.class},
+        version = 1,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -18,6 +18,7 @@ public abstract class AppDatabase extends RoomDatabase {
     private static volatile AppDatabase INSTANCE;
 
     public abstract ResumeDao resumeDao();
+
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {

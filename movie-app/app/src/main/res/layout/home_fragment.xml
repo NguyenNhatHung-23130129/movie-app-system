@@ -84,6 +84,7 @@
                         android:layout_marginTop="16dp">
 
                         <Button
+                            android:id="@+id/btnHeroPlay"
                             android:layout_width="130dp"
                             android:layout_height="44dp"
                             android:text="▶ Xem ngay"
