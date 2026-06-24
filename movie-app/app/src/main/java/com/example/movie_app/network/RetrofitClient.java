@@ -9,8 +9,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    private static final String BASE_URL = "http://192.168.1.5:8080/";
-    private static Retrofit retrofit = null;
+    private static final String BASE_URL = "http://10.0.2.2:8080/";
+    private static Retrofit retrofitClient = null;
+    private static Retrofit retrofitInstance = null;
 
     public static Retrofit getClient() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
@@ -20,17 +21,23 @@ public class RetrofitClient {
                 .addInterceptor(logging)
                 .build();
 
-        if (retrofit == null) {
-            Gson gson = new GsonBuilder()
-                    .setLenient()
-                    .create();
-
-            retrofit = new Retrofit.Builder()
+        if (retrofitClient == null) {
+            Gson gson = new GsonBuilder().setLenient().create();
+            retrofitClient = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create(gson))
                     .client(client)
                     .build();
         }
-        return retrofit;
+        return retrofitClient;
+    }
+    public static Retrofit getRetrofitInstance() {
+        if (retrofitInstance == null) {
+            retrofitInstance = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return retrofitInstance;
     }
 }
