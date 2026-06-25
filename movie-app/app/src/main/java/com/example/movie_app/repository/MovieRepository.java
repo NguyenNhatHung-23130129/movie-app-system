@@ -1,9 +1,13 @@
 package com.example.movie_app.repository;
 
+import android.app.Application;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.example.movie_app.dao.MovieDao;
+import com.example.movie_app.database.AppDatabase;
 import com.example.movie_app.models.*;
 import com.example.movie_app.network.ApiService;
 import com.example.movie_app.network.RetrofitClient;
@@ -17,10 +21,13 @@ import retrofit2.Response;
 public class MovieRepository {
     private static final String TAG = "MOVIE_REPO_DEBUG";
     private final ApiService apiService;
+    private final MovieDao movieDao;
     private final String FIREBASE_URL = "https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-    public MovieRepository() {
+    public MovieRepository(Application application) {
         this.apiService = RetrofitClient.getClient().create(ApiService.class);
+        AppDatabase db = AppDatabase.getDatabase(application);
+        this.movieDao = db.movieDao();
     }
 
     private LiveData<List<MovieItem>> handleListResponse(Call<KKPhimListResponse> call) {
@@ -54,20 +61,7 @@ public class MovieRepository {
     }
 
     public LiveData<List<MovieItem>> getMoviesFromFirebase() {
-        MutableLiveData<List<MovieItem>> liveData = new MutableLiveData<>();
-        FirebaseDatabase.getInstance(FIREBASE_URL).getReference("movies")
-                .addValueEventListener(new ValueEventListener() {
-                    @Override public void onDataChange(DataSnapshot snapshot) {
-                        List<MovieItem> list = new ArrayList<>();
-                        for (DataSnapshot child : snapshot.getChildren()) {
-                            MovieItem movie = child.getValue(MovieItem.class);
-                            if (movie != null) list.add(movie);
-                        }
-                        liveData.postValue(list);
-                    }
-                    @Override public void onCancelled(DatabaseError error) { liveData.postValue(null); }
-                });
-        return liveData;
+        return movieDao.getAllMovies();
     }
 
     public LiveData<List<MovieItem>> getMoviesByPath(String path, String slug, String typeFilter) {
@@ -193,11 +187,41 @@ public class MovieRepository {
 
                     @Override
                     public void onCancelled(DatabaseError error) {
-                        Log.e(TAG, "Lỗi Firebase Genres: " + error.getMessage());
                         liveData.postValue(new ArrayList<>());
                     }
                 });
         return liveData;
     }
     public LiveData<List<MovieItem>> searchMovies(String keyword) { return handleDirectListResponse(apiService.searchMovies(keyword)); }
+
+    public void syncDataFromFirebase() {
+        FirebaseDatabase.getInstance(FIREBASE_URL).getReference("movies")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        new Thread(() -> {
+                            List<MovieItem> list = new ArrayList<>();
+                            for (DataSnapshot child : snapshot.getChildren()) {
+                                MovieItem movie = child.getValue(MovieItem.class);
+
+                                if (movie != null && movie.getId() != null && !movie.getId().isEmpty()) {
+                                    list.add(movie);
+                                } else {
+                                    Log.e(TAG, "Bỏ qua phim lỗi (thiếu ID): " + child.getKey());
+                                }
+                            }
+
+                            movieDao.deleteAll();
+                            if (!list.isEmpty()) {
+                                movieDao.insertAll(list);
+                            }
+                            Log.d(TAG, "Đã đồng bộ " + list.size() + " phim hợp lệ vào Room.");
+                        }).start();
+                    }
+
+                    @Override public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e(TAG, "Lỗi sync: " + error.getMessage());
+                    }
+                });
+    }
 }
