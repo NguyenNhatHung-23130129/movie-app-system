@@ -96,4 +96,22 @@ public class HomeActivity extends AppCompatActivity {
         View bottomNav = findViewById(R.id.bottomNavigation);
         if (bottomNav != null) NavHelper.highlightTab(bottomNav, tabId);
     }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        int targetTabId = intent.getIntExtra("TARGET_TAB_ID", -1);
+
+        if (targetTabId != -1) {
+            if (targetTabId == R.id.tabHome) {
+                loadFragment(homeFragment, R.id.tabHome);
+            } else if (targetTabId == R.id.tabExplore) {
+                loadFragment(exploreFragment, R.id.tabExplore);
+            }
+        }
+    }
+    public int getCurrentTabId() {
+        return currentTabId;
+    }
 }

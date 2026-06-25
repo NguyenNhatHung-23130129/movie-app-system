@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
+import com.example.movie_app.activities.HomeActivity;
 import com.example.movie_app.activities.MovieDetailActivity;
 import com.example.movie_app.models.MovieItem;
 
@@ -42,16 +43,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public void onBindViewHolder(@NonNull MovieViewHolder holder, int position) {
         MovieItem movie = movieList.get(position);
         if (movie == null) return;
-
-        Log.d("IMAGE_DEBUG", "Name: " + movie.getName() + " | Poster: " + movie.getPosterUrl() + " | Thumb: " + movie.getThumbUrl());
-
         holder.tvTitle.setText(movie.getName());
 
         String imageUrl = (movie.getFullThumbUrl() != null && !movie.getFullThumbUrl().isEmpty())
                 ? movie.getFullThumbUrl()
                 : movie.getFullPosterUrl();
-
-        Log.d("DEBUG_ADAPTER", "Final URL cho phim " + movie.getName() + " là: " + imageUrl);
 
         Glide.with(holder.itemView.getContext())
                 .load(imageUrl)
@@ -66,11 +62,21 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                 Intent intent = new Intent(context, MovieDetailActivity.class);
                 intent.putExtra("movie_slug", movie.getSlug());
                 intent.putExtra("movie_image", imageUrl);
-                Log.d("DEBUG_INTENT_SEND", "Đang gửi intent với image: " + imageUrl);
+
+                if (context instanceof HomeActivity) {
+                    int currentTabId = ((HomeActivity) context).getCurrentTabId();
+                    intent.putExtra("ACTIVE_TAB_ID", currentTabId);
+                    intent.putExtra("IS_NESTED", false);
+                } else {
+                    intent.putExtra("IS_NESTED", true);
+                }
+
                 context.startActivity(intent);
             }
         });
     }
+
+
 
     @Override
     public int getItemCount() {

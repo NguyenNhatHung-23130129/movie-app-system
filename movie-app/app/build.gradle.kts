@@ -78,6 +78,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-common-java8:2.6.1")
 
     implementation("androidx.recyclerview:recyclerview:1.3.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
