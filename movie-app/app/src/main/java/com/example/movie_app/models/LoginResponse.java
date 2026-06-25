@@ -1,11 +1,27 @@
 package com.example.movie_app.models;
 
-public class LoginResponse {
-    private boolean success;
-    private String message;
-    private String token; // Chuỗi JWT dùng để xác thực các API khác
+import com.google.gson.annotations.SerializedName;
 
-    // Getters and Setters
+public class LoginResponse {
+
+    @SerializedName("success")
+    private boolean success;
+
+    @SerializedName("message")
+    private String message;
+
+    @SerializedName("userId")
+    private String userId;
+
+    // Getter và Setter
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public boolean isSuccess() {
         return success;
     }
@@ -20,13 +36,5 @@ public class LoginResponse {
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 }

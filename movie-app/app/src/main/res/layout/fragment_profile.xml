@@ -36,7 +36,6 @@
                     app:strokeColor="#FF1E27"
                     app:strokeWidth="2dp" />
 
-                <!-- Tích vàng nhỏ góc dưới bên phải Avatar -->
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"

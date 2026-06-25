@@ -3,8 +3,8 @@ package com.example.movie_app.models;
 public class RegisterResponse {
     private boolean success;
     private String message;
+    private String userId;
 
-    // Getters and Setters
     public boolean isSuccess() {
         return success;
     }
@@ -19,5 +19,13 @@ public class RegisterResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }
