@@ -1,5 +1,6 @@
 package com.example.movie_app.activities;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -38,32 +40,33 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     private RecyclerView rvRelatedMovies;
     private LinearLayout btnWatchNow;
+    private boolean isNested = false;
+    private int activeTabId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.movie_detail);
-
+        activeTabId = getIntent().getIntExtra("ACTIVE_TAB_ID", -1);
+        isNested = getIntent().getBooleanExtra("IS_NESTED", false);
         initViews();
         setupTabClickListeners();
-        String imageUrlFromIntent = getIntent().getStringExtra("movie_image");
-        Log.d("DEBUG_INTENT", "Nhận được từ Intent: " + imageUrlFromIntent);
-        if (getIntent().getExtras() != null) {
-            for (String key : getIntent().getExtras().keySet()) {
-                Log.d("DEBUG_INTENT", "Key tồn tại: " + key);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
             }
-        }
-        btnDetailBack.setOnClickListener(v -> finish());
+        });
+        btnDetailBack.setOnClickListener(v -> goToHome());
 
+        String imageUrlFromIntent = getIntent().getStringExtra("movie_image");
         String movieSlug = getIntent().getStringExtra("movie_slug");
-        Log.d("DEBUG_SLUG", "Slug: " + movieSlug);
         if (movieSlug != null) {
             movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
             movieViewModel.getMovieDetail(movieSlug).observe(this, response -> {
                 if (response != null && response.getMovie() != null) {
                     bindMovieData(response.getMovie(), imageUrlFromIntent);
                 } else {
-                    Log.e("DEBUG_API", "Response hoặc Movie bị null");
                     Toast.makeText(this, "Không tìm thấy thông tin phim!", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -153,7 +156,6 @@ public class MovieDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Đã lưu vào lịch sử: " + info.getName(), Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Lỗi: Không thể lưu phim này!", Toast.LENGTH_SHORT).show();
-                Log.e("DEBUG_SAVE", "Movie ID bị null hoặc rỗng");
             }
         });
 
@@ -202,5 +204,16 @@ public class MovieDetailActivity extends AppCompatActivity {
                         rvRelatedMovies.setAdapter(relatedAdapter);
                     }
                 });
+    }
+
+
+    private void goToHome() {
+        Intent intent = new Intent(this, HomeActivity.class);
+        if (activeTabId != -1) {
+            intent.putExtra("TARGET_TAB_ID", activeTabId);
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 }

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
@@ -43,6 +45,8 @@ public class HomeFragment extends BaseFragment {
     private List<Category> categoryList = new ArrayList<>();
     private MovieViewModel movieViewModel;
     private RecommendationEngine recommendationEngine;
+    private LinearLayout layoutRecommendedSection;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private boolean isFirstLoad = true;
 
@@ -64,13 +68,25 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setColorSchemeColors(0xFFE50914);
+        swipeRefreshLayout.setOnRefreshListener(this::refreshData);
         initViews(view);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
         recommendationEngine = new RecommendationEngine(requireContext());
 
+        loadAllData();
+    }
+
+    private void loadAllData() {
         loadCategories();
         loadDataFromFirebase();
         loadRecommendedMovies();
+    }
+
+    private void refreshData() {
+        loadAllData();
+        swipeRefreshLayout.postDelayed(() -> swipeRefreshLayout.setRefreshing(false), 2000);
     }
 
     private void initViews(View view) {
@@ -98,6 +114,7 @@ public class HomeFragment extends BaseFragment {
         seriesAdapter = setupMovieRecyclerView(rvSeries);
         singleMoviesAdapter = setupMovieRecyclerView(rvSingleMovies);
         recommendedAdapter = setupMovieRecyclerView(rvRecommendedMovies);
+        layoutRecommendedSection = view.findViewById(R.id.layoutRecommendedSection);
 
         if (btnViewAllContinue != null) btnViewAllContinue.setOnClickListener(v -> navigateToExplore("LATEST"));
         if (btnViewAllNew != null) btnViewAllNew.setOnClickListener(v -> navigateToExplore("NEW"));
@@ -116,17 +133,14 @@ public class HomeFragment extends BaseFragment {
         String currentUserId = "USER_ID_TEST";
         movieViewModel.getPersonalizedRecommendations(currentUserId, requireContext())
                 .observe(getViewLifecycleOwner(), movieList -> {
-                    Log.d("DEBUG_UI", "Số lượng phim gợi ý nhận được: " + (movieList != null ? movieList.size() : "null"));
-
                     if (movieList != null && !movieList.isEmpty()) {
                         recommendedAdapter.setMovieList(movieList);
                         recommendedAdapter.notifyDataSetChanged();
-
+                        layoutRecommendedSection.setVisibility(View.VISIBLE);
                         rvRecommendedMovies.setVisibility(View.VISIBLE);
-                        Log.d("AI_RECOMMEND", "Đã load " + movieList.size() + " phim gợi ý.");
                     } else {
-                        Log.d("AI_RECOMMEND", "Chưa có gợi ý nào.");
                         rvRecommendedMovies.setVisibility(View.GONE);
+                        layoutRecommendedSection.setVisibility(View.GONE);
                     }
                 });
     }
@@ -165,9 +179,15 @@ public class HomeFragment extends BaseFragment {
 
         movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), movieList -> {
             if (movieList != null && !movieList.isEmpty()) {
-                newMoviesAdapter.setMovieList(movieList);
-                continueWatchingAdapter.setMovieList(movieList);
-                updateHeroSection(movieList.get(0));
+                if (swipeRefreshLayout.isRefreshing()) {
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
+                if (movieList != null && !movieList.isEmpty()) {
+                    newMoviesAdapter.setMovieList(movieList);
+                    continueWatchingAdapter.setMovieList(movieList);
+                    updateHeroSection(movieList.get(0));
+                }
             }
         });
     }
@@ -180,7 +200,6 @@ public class HomeFragment extends BaseFragment {
 
         btnHeroDetail.setOnClickListener(v -> {
             Intent intent = new Intent(requireContext(), MovieDetailActivity.class);
-            Log.d("DEBUG_FIX", "Slug gửi đi: " + movie.getSlug());
             intent.putExtra("movie_slug", movie.getSlug());
             intent.putExtra("movie_image", movie.getPosterUrl());
             startActivity(intent);

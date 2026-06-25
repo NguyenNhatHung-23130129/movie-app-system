@@ -535,12 +535,4 @@
                 app:tint="#FFFFFF"/>
         </LinearLayout>
     </RelativeLayout>
-
-    <include
-        android:id="@+id/includeFooter"
-        layout="@layout/home_bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
