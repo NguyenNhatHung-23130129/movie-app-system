@@ -7,13 +7,6 @@
     android:layout_height="match_parent"
     android:background="#0F1115">
 
-    <include
-        android:id="@+id/layoutHeader"
-        layout="@layout/home_header_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <EditText
         android:id="@+id/edtSearch"
         android:layout_width="match_parent"
@@ -25,60 +18,58 @@
         android:textColor="#FFFFFF"
         android:paddingHorizontal="16dp"
         android:textSize="14sp"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeader" />
+        app:layout_constraintTop_toTopOf="parent" /> <HorizontalScrollView
+    android:id="@+id/filterScroll"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:scrollbars="none"
+    android:paddingHorizontal="16dp"
+    android:clipToPadding="false"
+    app:layout_constraintTop_toBottomOf="@id/edtSearch">
 
-    <HorizontalScrollView
-        android:id="@+id/filterScroll"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:scrollbars="none"
-        android:paddingHorizontal="16dp"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/edtSearch">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/chipNew"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:text="Phim Mới"
+            android:textColor="#9CA3AF"
+            android:background="#1E2024"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="8dp"
+            android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/chipNew"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Phim Mới"
-                android:textColor="#9CA3AF"
-                android:background="#1E2024"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:layout_marginEnd="8dp"
-                android:textStyle="bold"/>
+        <TextView
+            android:id="@+id/chipSeries"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Phim Bộ"
+            android:textColor="#9CA3AF"
+            android:background="#1E2024"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:layout_marginEnd="8dp"
+            android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/chipSeries"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Phim Bộ"
-                android:textColor="#9CA3AF"
-                android:background="#1E2024"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:layout_marginEnd="8dp"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/chipSingle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Phim Lẻ"
-                android:textColor="#9CA3AF"
-                android:background="#1E2024"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp"
-                android:textStyle="bold"/>
-        </LinearLayout>
-    </HorizontalScrollView>
+        <TextView
+            android:id="@+id/chipSingle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Phim Lẻ"
+            android:textColor="#9CA3AF"
+            android:background="#1E2024"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+</HorizontalScrollView>
 
     <HorizontalScrollView
         android:id="@+id/genreScroll"

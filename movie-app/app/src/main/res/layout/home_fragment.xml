@@ -7,21 +7,12 @@
     android:layout_height="match_parent"
     android:background="#0F1115">
 
-    <include
-        android:id="@+id/layoutHeader"
-        layout="@layout/home_header_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:fillViewport="true"
         android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeader"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -47,7 +38,7 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="250dp"
+                    android:layout_height="150dp"
                     android:layout_gravity="bottom"
                     android:background="@android:drawable/screen_background_dark_transparent" />
 
@@ -134,14 +125,6 @@
                 </RelativeLayout>
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvGenresContinue"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal"
-                    android:scrollbars="none" />
-
-                <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvContinueWatching"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -164,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Gợi ý cho bạn"
-                    android:textColor="#FFB4AA"
+                    android:textColor="#E2E2E8"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
@@ -324,7 +307,6 @@
                     app:spanCount="3"
                     tools:listitem="@layout/home_item_movie" />
             </LinearLayout>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

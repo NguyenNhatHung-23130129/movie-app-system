@@ -34,8 +34,7 @@ import java.util.List;
 
 public class HomeFragment extends BaseFragment {
 
-    private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies, rvRecommendedMovies,
-            rvGenresContinue, rvGenresNew, rvGenresSeries, rvGenresSingle;
+    private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies, rvRecommendedMovies, rvGenresNew, rvGenresSeries, rvGenresSingle;
     private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
     private ImageView imgHeroPoster;
     private Button btnHeroDetail;
@@ -81,7 +80,6 @@ public class HomeFragment extends BaseFragment {
         rvSingleMovies = view.findViewById(R.id.rvSingleMovies);
         rvRecommendedMovies = view.findViewById(R.id.rvRecommendedMovies);
 
-        rvGenresContinue = view.findViewById(R.id.rvGenresContinue);
         rvGenresNew = view.findViewById(R.id.rvGenresNew);
         rvGenresSeries = view.findViewById(R.id.rvGenresSeries);
         rvGenresSingle = view.findViewById(R.id.rvGenresSingle);
@@ -144,7 +142,6 @@ public class HomeFragment extends BaseFragment {
                     categoryList.clear();
                     categoryList.addAll(categories);
 
-                    setupCategoryRecyclerView(rvGenresContinue, rvContinueWatching, continueWatchingAdapter, null);
                     setupCategoryRecyclerView(rvGenresNew, rvNewMovies, newMoviesAdapter, null);
                     setupCategoryRecyclerView(rvGenresSeries, rvSeries, seriesAdapter, "series");
                     setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
