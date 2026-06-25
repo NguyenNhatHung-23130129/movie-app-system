@@ -26,7 +26,7 @@ public class MovieViewModel extends AndroidViewModel {
 
     public MovieViewModel(@NonNull Application application) {
         super(application);
-        this.movieRepository = new MovieRepository();
+        this.movieRepository = new MovieRepository(application);
         this.historyRepository = new HistoryRepository(application);
     }
 
@@ -90,5 +90,9 @@ public class MovieViewModel extends AndroidViewModel {
 
     public void saveToHistory(String movieId, String userId, String name, String poster) {
         historyRepository.insertHistory(new WatchHistoryEntity(movieId, userId, name, poster, System.currentTimeMillis(), 0));
+    }
+
+    public void refreshData() {
+        movieRepository.syncDataFromFirebase();
     }
 }

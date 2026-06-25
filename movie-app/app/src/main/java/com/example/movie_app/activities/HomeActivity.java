@@ -8,9 +8,11 @@ import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -18,12 +20,14 @@ import com.example.movie_app.R;
 import com.example.movie_app.fragments.ExploreFragment;
 import com.example.movie_app.fragments.HomeFragment;
 import com.example.movie_app.helpers.NavHelper;
+import com.google.android.material.navigation.NavigationView;
 
 public class HomeActivity extends AppCompatActivity {
 
     private final HomeFragment homeFragment = new HomeFragment();
     private final ExploreFragment exploreFragment = new ExploreFragment();
     private int currentTabId = -1;
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,11 +37,46 @@ public class HomeActivity extends AppCompatActivity {
 
         setupWindowInsets();
         setupClickListeners();
+        setupDrawer();
 
         if (savedInstanceState == null) {
             loadFragment(homeFragment, R.id.tabHome);
         }
+
         initNavigation();
+    }
+
+    private void setupDrawer() {
+        drawerLayout = findViewById(R.id.drawerLayout);
+        NavigationView navView = findViewById(R.id.navMenu);
+
+        View headerBar = findViewById(R.id.layoutHeader);
+        if (headerBar != null) {
+            headerBar.findViewById(R.id.btnMenu).setOnClickListener(v ->
+                    drawerLayout.openDrawer(GravityCompat.START)
+            );
+        }
+
+        navView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.menu_home) {
+                loadFragment(homeFragment, R.id.tabHome);
+            } else if (id == R.id.menu_explore) {
+                loadFragment(exploreFragment, R.id.tabExplore);
+            }
+
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void setupWindowInsets() {

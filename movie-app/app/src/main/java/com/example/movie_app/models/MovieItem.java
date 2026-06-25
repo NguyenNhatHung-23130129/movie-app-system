@@ -1,13 +1,23 @@
 package com.example.movie_app.models;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.room.TypeConverters;
+
+import com.example.movie_app.utils.MovieTypeConverter;
 import com.google.gson.annotations.SerializedName;
 import com.google.firebase.database.PropertyName;
 import java.util.List;
 
+@Entity(tableName = "movies")
+@TypeConverters({MovieTypeConverter.class})
 public class MovieItem {
+    @PrimaryKey
+    @NonNull
     @SerializedName("_id")
     @PropertyName("id")
-    private String id;
+    private String id = "";
 
     @SerializedName("name")
     @PropertyName("name")
@@ -59,8 +69,12 @@ public class MovieItem {
 
     public MovieItem() {}
 
-    @PropertyName("id") public String getId() { return id; }
-    @PropertyName("id") public void setId(String id) { this.id = id; }
+    @PropertyName("id")
+    @NonNull
+    public String getId() { return id != null ? id : ""; }
+
+    @PropertyName("id")
+    public void setId(@NonNull String id) { this.id = id; }
 
     @PropertyName("name") public String getName() { return name; }
     @PropertyName("name") public void setName(String name) { this.name = name; }
