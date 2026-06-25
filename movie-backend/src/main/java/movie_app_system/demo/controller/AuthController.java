@@ -33,6 +33,7 @@ public class AuthController {
 
             response.setSuccess(true);
             response.setMessage("Đăng ký tài khoản thành công!");
+            response.setUserId(userRecord.getUid());
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -53,6 +54,7 @@ public class AuthController {
             response.setSuccess(true);
             response.setMessage("Đăng nhập thành công!");
             response.setToken("mock-firebase-jwt-token-" + userRecord.getUid());
+            response.setUserId(userRecord.getUid());
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
