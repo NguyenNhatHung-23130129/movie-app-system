@@ -19,6 +19,7 @@ import androidx.fragment.app.FragmentManager;
 import com.example.movie_app.R;
 import com.example.movie_app.fragments.ExploreFragment;
 import com.example.movie_app.fragments.HomeFragment;
+import com.example.movie_app.fragments.ProfileFragment; // 1. Thêm import ProfileFragment
 import com.example.movie_app.helpers.NavHelper;
 import com.google.android.material.navigation.NavigationView;
 
@@ -26,6 +27,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private final HomeFragment homeFragment = new HomeFragment();
     private final ExploreFragment exploreFragment = new ExploreFragment();
+    private final ProfileFragment profileFragment = new ProfileFragment();
     private int currentTabId = -1;
     private DrawerLayout drawerLayout;
 
@@ -113,6 +115,11 @@ public class HomeActivity extends AppCompatActivity {
     private void initNavigation() {
         findViewById(R.id.tabHome).setOnClickListener(v -> loadFragment(homeFragment, R.id.tabHome));
         findViewById(R.id.tabExplore).setOnClickListener(v -> loadFragment(exploreFragment, R.id.tabExplore));
+
+        View tabProfile = findViewById(R.id.tabProfile);
+        if (tabProfile != null) {
+            tabProfile.setOnClickListener(v -> loadFragment(profileFragment, R.id.tabProfile));
+        }
     }
 
     public void loadFragment(Fragment fragment, int tabId) {
@@ -120,20 +127,26 @@ public class HomeActivity extends AppCompatActivity {
 
         FragmentManager fm = getSupportFragmentManager();
         var transaction = fm.beginTransaction();
-        Fragment currentFragment = fm.findFragmentById(R.id.fragmentContainer);
-        if (currentFragment != null) {
-            transaction.hide(currentFragment);
+
+        for (Fragment f : fm.getFragments()) {
+            if (f != null && f.isAdded()) {
+                transaction.hide(f);
+            }
         }
 
         if (!fragment.isAdded()) {
-            transaction.add(R.id.fragmentContainer, fragment).commit();
+            transaction.add(R.id.fragmentContainer, fragment);
         } else {
-            transaction.show(fragment).commit();
+            transaction.show(fragment);
         }
 
+        transaction.commit();
         currentTabId = tabId;
+
         View bottomNav = findViewById(R.id.bottomNavigation);
-        if (bottomNav != null) NavHelper.highlightTab(bottomNav, tabId);
+        if (bottomNav != null) {
+            NavHelper.highlightTab(bottomNav, tabId);
+        }
     }
 
     @Override
@@ -147,9 +160,12 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(homeFragment, R.id.tabHome);
             } else if (targetTabId == R.id.tabExplore) {
                 loadFragment(exploreFragment, R.id.tabExplore);
+            } else if (targetTabId == R.id.tabProfile) { // 4. Điều hướng từ Intent ngoài vào tab Profile
+                loadFragment(profileFragment, R.id.tabProfile);
             }
         }
     }
+
     public int getCurrentTabId() {
         return currentTabId;
     }
