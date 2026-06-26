@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -32,11 +33,18 @@ public class ExploreFragment extends BaseFragment {
     private LinearLayout layoutGenres;
     private RecyclerView rvExplore;
     private EditText edtSearch;
+
+    private Button btnPrev, btnNext;
+    private TextView txtPageInfo;
+    private int currentPage = 1;
+    private final int PAGE_SIZE = 18;
+
     private MovieAdapter exploreAdapter;
     private MovieViewModel movieViewModel;
 
     private final List<TextView> genreChipsList = new ArrayList<>();
     private final List<MovieItem> allMoviesList = new ArrayList<>();
+    private final List<MovieItem> currentFilteredList = new ArrayList<>();
 
     private String currentFormat = "NEW";
     private String currentGenreSlug = null;
@@ -73,19 +81,61 @@ public class ExploreFragment extends BaseFragment {
         rvExplore = view.findViewById(R.id.rvExplore);
         edtSearch = view.findViewById(R.id.edtSearch);
 
-        // Đã sửa thành 3 cột theo ý bạn
         rvExplore.setLayoutManager(new GridLayoutManager(requireContext(), 3));
         exploreAdapter = new MovieAdapter(new ArrayList<>());
         rvExplore.setAdapter(exploreAdapter);
 
         edtSearch.setOnClickListener(v -> startActivity(new Intent(getActivity(), SearchActivity.class)));
         edtSearch.setFocusable(false);
+
+        btnPrev = view.findViewById(R.id.btnPrev);
+        btnNext = view.findViewById(R.id.btnNext);
+        txtPageInfo = view.findViewById(R.id.txtPageInfo);
+
+        rvExplore.setLayoutManager(new GridLayoutManager(requireContext(), 3));
+        exploreAdapter = new MovieAdapter(new ArrayList<>());
+        rvExplore.setAdapter(exploreAdapter);
     }
 
     private void setupListeners() {
-        chipNew.setOnClickListener(v -> updateFormat("NEW"));
-        chipSeries.setOnClickListener(v -> updateFormat("SERIES"));
-        chipSingle.setOnClickListener(v -> updateFormat("SINGLE"));
+        chipNew.setOnClickListener(v -> { resetPagination(); updateFormat("NEW"); });
+        chipSeries.setOnClickListener(v -> { resetPagination(); updateFormat("SERIES"); });
+        chipSingle.setOnClickListener(v -> { resetPagination(); updateFormat("SINGLE"); });
+
+        btnNext.setOnClickListener(v -> {
+            if ((currentPage * PAGE_SIZE) < currentFilteredList.size()) {
+                currentPage++;
+                renderPage();
+            }
+        });
+
+        btnPrev.setOnClickListener(v -> {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+            }
+        });
+    }
+
+    private void renderPage() {
+        int totalItems = currentFilteredList.size();
+        int fromIndex = (currentPage - 1) * PAGE_SIZE;
+        int toIndex = Math.min(fromIndex + PAGE_SIZE, totalItems);
+
+        if (fromIndex < totalItems) {
+            List<MovieItem> pageList = currentFilteredList.subList(fromIndex, toIndex);
+            exploreAdapter.setMovieList(pageList);
+        } else {
+            exploreAdapter.setMovieList(new ArrayList<>());
+        }
+
+        txtPageInfo.setText("Trang " + currentPage);
+        btnPrev.setEnabled(currentPage > 1);
+        btnNext.setEnabled((currentPage * PAGE_SIZE) < totalItems);
+    }
+
+    private void resetPagination() {
+        currentPage = 1;
     }
 
     private void loadData() {
@@ -95,7 +145,6 @@ public class ExploreFragment extends BaseFragment {
 
         movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), movies -> {
             if (movies != null) {
-                Log.d("FILTER_DEBUG", "Đã tải thành công: " + movies.size() + " phim từ Firebase");
                 allMoviesList.clear();
                 allMoviesList.addAll(movies);
                 applyFilters();
@@ -107,16 +156,20 @@ public class ExploreFragment extends BaseFragment {
         if (currentGenreSlug != null) {
             String type = currentFormat.equals("NEW") ? "" : currentFormat.toLowerCase();
             movieViewModel.getMoviesByPath("by_category", currentGenreSlug, type)
-                    .observe(getViewLifecycleOwner(), exploreAdapter::setMovieList);
+                    .observe(getViewLifecycleOwner(), movies -> {
+                        currentFilteredList.clear();
+                        if (movies != null) currentFilteredList.addAll(movies);
+                        renderPage();
+                    });
         }
         else {
-            List<MovieItem> filtered = new ArrayList<>();
+            currentFilteredList.clear();
             for (MovieItem m : allMoviesList) {
                 if (currentFormat.equals("NEW") || currentFormat.toLowerCase().equals(m.getType())) {
-                    filtered.add(m);
+                    currentFilteredList.add(m);
                 }
             }
-            exploreAdapter.setMovieList(filtered);
+            renderPage();
         }
         updateUI();
     }

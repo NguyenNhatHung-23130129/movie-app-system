@@ -43,7 +43,6 @@ public class MovieViewModel extends AndroidViewModel {
         MediatorLiveData<List<MovieItem>> result = new MediatorLiveData<>();
         String categorySlug = (categories != null && !categories.isEmpty()) ? categories.get(0).getSlug() : "";
 
-        // Dùng addSource để lắng nghe thay vì observeForever
         result.addSource(movieRepository.getMoviesByPath("by_category", categorySlug, ""), movies -> {
             if (movies != null) {
                 String seriesPrefix = currentSlug.split("-")[0];
