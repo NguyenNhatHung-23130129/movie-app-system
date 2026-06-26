@@ -6,12 +6,14 @@ public class Comment {
     private String avatarUrl;
     private String content;
     private String timeAgo;
-    public Comment(String id, String username, String avatarUrl, String content, String timeAgo) {
+    private float rating;
+    public Comment(String id, String username, String avatarUrl, String content, String timeAgo, float rating) {
         this.id = id;
         this.username = username;
         this.avatarUrl = avatarUrl;
         this.content = content;
         this.timeAgo = timeAgo;
+        this.rating = rating;
     }
 
     // Getters
@@ -54,5 +56,12 @@ public class Comment {
 
     public void setTimeAgo(String timeAgo) {
         this.timeAgo = timeAgo;
+    }
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 }
