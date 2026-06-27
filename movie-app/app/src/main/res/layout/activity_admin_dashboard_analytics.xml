@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="#111317"
-    tools:context=".DashboardAnalyticsActivity"
     android:orientation="vertical">
 
     <ScrollView
@@ -111,6 +110,7 @@
                             app:tint="#E2E2E8" />
 
                         <TextView
+                            android:id="@+id/tv_filter_time_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="30 ngày qua"
@@ -146,10 +146,11 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tv_growth_percentage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    android:text="+12.5% so với tháng trước"
+                    android:text="--% so với tháng trước"
                     android:textColor="#22C55E"
                     android:textSize="14sp" />
 
@@ -160,71 +161,13 @@
                     android:layout_marginHorizontal="4dp"
                     android:layout_marginBottom="8dp"
                     android:gravity="bottom"
-                    android:orientation="horizontal">
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="100dp"
-                        android:layout_marginHorizontal="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/chart_bar_gray" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="180dp"
-                        android:layout_marginHorizontal="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/chart_bar_red" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="140dp"
-                        android:layout_marginHorizontal="4dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/chart_bar_gray" />
-                </LinearLayout>
+                    android:orientation="horizontal" />
 
                 <LinearLayout
+                    android:id="@+id/layout_chart_labels"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="1 Th04"
-                        android:textColor="#8E8E93"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="10 Th04"
-                        android:textColor="#8E8E93"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="20 Th04"
-                        android:textColor="#8E8E93"
-                        android:textSize="11sp" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="30 Th04"
-                        android:textColor="#8E8E93"
-                        android:textSize="11sp" />
-                </LinearLayout>
+                    android:orientation="horizontal" />
             </LinearLayout>
 
             <LinearLayout
@@ -254,15 +197,16 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
-                        android:text="2,458,901"
+                        android:text="--"
                         android:textColor="#E2E2E8"
                         android:textSize="22sp"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tv_counter_user_subtext"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="▲ 8%"
+                        android:text="▲ --%"
                         android:textColor="#22C55E"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -287,7 +231,7 @@
                         android:id="@+id/tv_peak_hours"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="20:00 - 23:00"
+                        android:text="--:-- - --:--"
                         android:textColor="#E2E2E8"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -335,10 +279,11 @@
                             android:textColor="#E2E2E8" />
 
                         <TextView
+                            android:id="@+id/tv_movie_watch_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:text="8.2M phút"
+                            android:text="--M phút"
                             android:textColor="#E2E2E8" />
                     </RelativeLayout>
 
@@ -348,7 +293,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="6dp"
                         android:layout_marginTop="4dp"
-                        android:progress="65"
+                        android:progress="0"
                         android:progressDrawable="@drawable/bg_progress_track"
                         android:progressTint="#E50914" />
                 </LinearLayout>
@@ -369,10 +314,11 @@
                             android:textColor="#E2E2E8" />
 
                         <TextView
+                            android:id="@+id/tv_series_watch_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:text="3.1M phút"
+                            android:text="--M phút"
                             android:textColor="#E2E2E8" />
                     </RelativeLayout>
 
@@ -382,7 +328,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="6dp"
                         android:layout_marginTop="4dp"
-                        android:progress="25"
+                        android:progress="0"
                         android:progressDrawable="@drawable/bg_progress_track"
                         android:progressTint="#BDC7D9" />
                 </LinearLayout>
@@ -421,58 +367,11 @@
                         android:textStyle="bold" />
                 </RelativeLayout>
 
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_trending_movies"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingVertical="8dp">
-
-                    <TextView
-                        android:layout_width="28dp"
-                        android:layout_height="wrap_content"
-                        android:text="01"
-                        android:textColor="#E50914"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/img_poster_movie_1"
-                        android:layout_width="40dp"
-                        android:layout_height="56dp"
-                        android:layout_marginEnd="12dp"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/movie_24" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Neon Horizon: Legacy"
-                            android:textColor="#E2E2E8"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Sci-Fi • 2h 15m"
-                            android:textColor="#8E8E93"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="1.2M lượt"
-                        android:textColor="#E2E2E8"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                    android:nestedScrollingEnabled="false" />
             </LinearLayout>
 
         </LinearLayout>

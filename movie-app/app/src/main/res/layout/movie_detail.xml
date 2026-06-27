@@ -405,59 +405,114 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical">
-                    <EditText
-                        android:id="@+id/edtCommentInput"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_info_card"
-                        android:hint="Viết bình luận của bạn..."
-                        android:textColorHint="#8E8E93"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        android:paddingHorizontal="12dp"
-                        android:inputType="text"/>
-                    <ImageView
-                        android:id="@+id/btnSendComment"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@android:drawable/ic_menu_send"
-                        android:padding="8dp"
-                        app:tint="#E50914"
-                        android:layout_marginStart="8dp"/>
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_info_card"
+                    android:padding="12dp"
+                    android:layout_marginBottom="24dp">
+
+                    <RatingBar
+                        android:id="@+id/ratingBarInput"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:stepSize="1.0"
+                        android:rating="5"
+                        android:progressTint="#F59E0B"
+                        android:layout_marginBottom="8dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <EditText
+                            android:id="@+id/edtCommentInput"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:background="@null"
+                            android:hint="Viết bình luận của bạn..."
+                            android:textColorHint="#8E8E93"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:inputType="text"/>
+
+                        <ImageView
+                            android:id="@+id/btnSendComment"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:src="@android:drawable/ic_menu_send"
+                            android:padding="8dp"
+                            app:tint="#E50914"
+                            android:layout_marginStart="8dp"/>
+                    </LinearLayout>
                 </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Người dùng ẩn danh • Vừa xong"
-                    android:textColor="#8E8E93"
-                    android:textSize="12sp"
-                    android:layout_marginBottom="4dp"/>
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Phim đỉnh thực sự, kỹ xảo mãn nhãn quá mọi người ơi!"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="16dp"/>
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Minh Tuấn • 2 giờ trước"
-                    android:textColor="#8E8E93"
-                    android:textSize="12sp"
-                    android:layout_marginBottom="4dp"/>
-                <TextView
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Người dùng ẩn danh • Vừa xong"
+                        android:textColor="#8E8E93"
+                        android:textSize="12sp"/>
+
+                    <RatingBar
+                        style="?android:attr/ratingBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:rating="5"
+                        android:isIndicator="true"
+                        android:progressTint="#F59E0B"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Phim đỉnh thực sự, kỹ xảo mãn nhãn quá mọi người ơi!"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Mong chờ phần tiếp theo ra mắt sớm, kết phim mở quá."
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"/>
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Minh Tuấn • 2 giờ trước"
+                        android:textColor="#8E8E93"
+                        android:textSize="12sp"/>
+
+                    <RatingBar
+                        style="?android:attr/ratingBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:rating="4"
+                        android:isIndicator="true"
+                        android:progressTint="#F59E0B"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Mong chờ phần tiếp theo ra mắt sớm, kết phim mở quá."
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+
             </LinearLayout>
 
             <LinearLayout
@@ -535,12 +590,4 @@
                 app:tint="#FFFFFF"/>
         </LinearLayout>
     </RelativeLayout>
-
-    <include
-        android:id="@+id/includeFooter"
-        layout="@layout/home_bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#121214"
     android:orientation="vertical"
-    tools:context=".AdminDashboardActivity">
+    tools:context=".activities.AdminDashboardActivity">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -68,9 +68,10 @@
                     android:padding="8dp">
 
                     <TextView
+                        android:id="@+id/tvAdminInitial"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="NH"
+                        android:text="AD"
                         android:textColor="#FFFFFF"
                         android:textSize="10sp"
                         android:textStyle="bold" />
@@ -119,7 +120,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="end"
-                                android:text="+12%"
+                                android:text="+0%"
                                 android:textColor="#E9C400"
                                 android:textSize="10sp"
                                 android:textStyle="bold" />
@@ -134,9 +135,10 @@
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/tvTotalUsers"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="128.4K"
+                            android:text="..."
                             android:textColor="#E2E2E8"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -179,14 +181,15 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="NEW MOVIES"
+                            android:text="TOTAL MOVIES"
                             android:textColor="#E9BCB6"
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/tvTotalMovies"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="24"
+                            android:text="..."
                             android:textColor="#E2E2E8"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -234,9 +237,10 @@
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/tvPendingCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="156"
+                            android:text="..."
                             android:textColor="#E2E2E8"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -290,9 +294,10 @@
                             android:textSize="10sp" />
 
                         <TextView
+                            android:id="@+id/tvStreamingCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="1,024"
+                            android:text="..."
                             android:textColor="#E2E2E8"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -350,17 +355,19 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvUserName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Sarah Jenkins"
+                            android:text="..."
                             android:textColor="#E2E2E8"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvUserJoinedDate"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Joined Oct 12, 2023"
+                            android:text="..."
                             android:textColor="#E9BCB6"
                             android:textSize="10sp" />
                     </LinearLayout>
@@ -427,16 +434,18 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvActivityMessage"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="New registration: Sarah Jenkins"
+                                android:text="..."
                                 android:textColor="#E2E2E8"
                                 android:textSize="12sp" />
 
                             <TextView
+                                android:id="@+id/tvActivityTime"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="2 MINS AGO"
+                                android:text="..."
                                 android:textColor="#FFB4AA"
                                 android:textSize="10sp"
                                 android:textStyle="bold" />

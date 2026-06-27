@@ -9,23 +9,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.HomeActivity;
 import com.example.movie_app.activities.MovieDetailActivity;
-import com.example.movie_app.activities.VideoPlayerActivity;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.adapter.CategoryAdapter;
 import com.example.movie_app.models.Category;
-import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.models.MovieItem;
 import com.example.movie_app.utils.RecommendationEngine;
 import com.example.movie_app.viewmodel.MovieViewModel;
@@ -35,16 +36,28 @@ import java.util.List;
 
 public class HomeFragment extends BaseFragment {
 
-    private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies, rvRecommendedMovies,
-            rvGenresContinue, rvGenresNew, rvGenresSeries, rvGenresSingle;
+    private RecyclerView rvContinueWatching, rvNewMovies, rvSeries, rvSingleMovies, rvRecommendedMovies, rvGenresNew, rvGenresSeries, rvGenresSingle;
     private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
     private ImageView imgHeroPoster;
-    private Button btnHeroDetail, btnHeroPlay;
+    private Button btnHeroDetail;
 
     private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter, recommendedAdapter;
     private List<Category> categoryList = new ArrayList<>();
     private MovieViewModel movieViewModel;
     private RecommendationEngine recommendationEngine;
+    private LinearLayout layoutRecommendedSection;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    private boolean isFirstLoad = true;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!isFirstLoad) {
+            loadRecommendedMovies();
+        }
+        isFirstLoad = false;
+    }
 
     @Nullable
     @Override
@@ -55,13 +68,25 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setColorSchemeColors(0xFFE50914);
+        swipeRefreshLayout.setOnRefreshListener(this::refreshData);
         initViews(view);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
         recommendationEngine = new RecommendationEngine(requireContext());
 
+        loadAllData();
+    }
+
+    private void loadAllData() {
         loadCategories();
         loadDataFromFirebase();
         loadRecommendedMovies();
+    }
+
+    private void refreshData() {
+        loadAllData();
+        swipeRefreshLayout.postDelayed(() -> swipeRefreshLayout.setRefreshing(false), 2000);
     }
 
     private void initViews(View view) {
@@ -71,7 +96,6 @@ public class HomeFragment extends BaseFragment {
         rvSingleMovies = view.findViewById(R.id.rvSingleMovies);
         rvRecommendedMovies = view.findViewById(R.id.rvRecommendedMovies);
 
-        rvGenresContinue = view.findViewById(R.id.rvGenresContinue);
         rvGenresNew = view.findViewById(R.id.rvGenresNew);
         rvGenresSeries = view.findViewById(R.id.rvGenresSeries);
         rvGenresSingle = view.findViewById(R.id.rvGenresSingle);
@@ -84,13 +108,13 @@ public class HomeFragment extends BaseFragment {
         imgHeroPoster = view.findViewById(R.id.imgHeroPoster);
         tvHeroTitle = view.findViewById(R.id.tvHeroTitle);
         btnHeroDetail = view.findViewById(R.id.btnHeroDetail);
-        btnHeroPlay = view.findViewById(R.id.btnHeroPlay);
 
         continueWatchingAdapter = setupMovieRecyclerView(rvContinueWatching);
         newMoviesAdapter = setupMovieRecyclerView(rvNewMovies);
         seriesAdapter = setupMovieRecyclerView(rvSeries);
         singleMoviesAdapter = setupMovieRecyclerView(rvSingleMovies);
         recommendedAdapter = setupMovieRecyclerView(rvRecommendedMovies);
+        layoutRecommendedSection = view.findViewById(R.id.layoutRecommendedSection);
 
         if (btnViewAllContinue != null) btnViewAllContinue.setOnClickListener(v -> navigateToExplore("LATEST"));
         if (btnViewAllNew != null) btnViewAllNew.setOnClickListener(v -> navigateToExplore("NEW"));
@@ -106,31 +130,40 @@ public class HomeFragment extends BaseFragment {
     }
 
     private void loadRecommendedMovies() {
-        String lastWatchedSlug = PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getString("LAST_WATCHED_SLUG", null);
-
-        if (lastWatchedSlug != null) {
-            List<String> suggestedSlugs = recommendationEngine.getRecommendations(lastWatchedSlug, 6);
-            if (!suggestedSlugs.isEmpty()) {
-                movieViewModel.getMoviesBySlugs(suggestedSlugs).observe(getViewLifecycleOwner(), movieList -> {
-                    if (movieList != null) recommendedAdapter.setMovieList(movieList);
+        String currentUserId = "USER_ID_TEST";
+        movieViewModel.getPersonalizedRecommendations(currentUserId, requireContext())
+                .observe(getViewLifecycleOwner(), movieList -> {
+                    if (movieList != null && !movieList.isEmpty()) {
+                        recommendedAdapter.setMovieList(movieList);
+                        recommendedAdapter.notifyDataSetChanged();
+                        layoutRecommendedSection.setVisibility(View.VISIBLE);
+                        rvRecommendedMovies.setVisibility(View.VISIBLE);
+                    } else {
+                        rvRecommendedMovies.setVisibility(View.GONE);
+                        layoutRecommendedSection.setVisibility(View.GONE);
+                    }
                 });
-            }
-        }
     }
 
     private void loadCategories() {
-        movieViewModel.getGenres().observe(getViewLifecycleOwner(), categories -> {
-            if (categories != null && !categories.isEmpty()) {
-                categoryList.clear();
-                categoryList.addAll(categories);
+        if (movieViewModel == null) return;
 
-                setupCategoryRecyclerView(rvGenresContinue, rvContinueWatching, continueWatchingAdapter, null);
-                setupCategoryRecyclerView(rvGenresNew, rvNewMovies, newMoviesAdapter, null);
-                setupCategoryRecyclerView(rvGenresSeries, rvSeries, seriesAdapter, "series");
-                setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
-            }
-        });
+        LiveData<List<Category>> genreLiveData = movieViewModel.getGenres();
+
+        if (genreLiveData != null) {
+            genreLiveData.observe(getViewLifecycleOwner(), categories -> {
+                if (categories != null && !categories.isEmpty()) {
+                    categoryList.clear();
+                    categoryList.addAll(categories);
+
+                    setupCategoryRecyclerView(rvGenresNew, rvNewMovies, newMoviesAdapter, null);
+                    setupCategoryRecyclerView(rvGenresSeries, rvSeries, seriesAdapter, "series");
+                    setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
+                }
+            });
+        } else {
+            Log.e("HOME_FRAGMENT", "Repository trả về null cho genres");
+        }
     }
 
     private void loadDataFromFirebase() {
@@ -146,9 +179,15 @@ public class HomeFragment extends BaseFragment {
 
         movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), movieList -> {
             if (movieList != null && !movieList.isEmpty()) {
-                newMoviesAdapter.setMovieList(movieList);
-                continueWatchingAdapter.setMovieList(movieList);
-                updateHeroSection(movieList.get(0));
+                if (swipeRefreshLayout.isRefreshing()) {
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
+                if (movieList != null && !movieList.isEmpty()) {
+                    newMoviesAdapter.setMovieList(movieList);
+                    continueWatchingAdapter.setMovieList(movieList);
+                    updateHeroSection(movieList.get(0));
+                }
             }
         });
     }
@@ -159,61 +198,11 @@ public class HomeFragment extends BaseFragment {
         tvHeroTitle.setText(movie.getName());
         imgHeroPoster.post(() -> Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster));
 
-        btnHeroDetail.setOnClickListener(v -> startActivity(new Intent(requireContext(), MovieDetailActivity.class)
-                .putExtra("movie_slug", movie.getSlug())));
-
-        btnHeroPlay.setOnClickListener(v -> {
-            Log.d("HERO_PLAY", "Click Xem Ngay tại Home - Phim: " + movie.getName());
-
-            movieViewModel.getMovieDetail(movie.getSlug()).observe(getViewLifecycleOwner(), response -> {
-                if (response != null && response.getEpisodes() != null && !response.getEpisodes().isEmpty()) {
-
-                    MovieDetailResponse.EpisodeServer firstServer = response.getEpisodes().get(0);
-
-                    if (firstServer.getServerData() != null && !firstServer.getServerData().isEmpty()) {
-
-                        MovieDetailResponse.EpisodeData firstEpisode = firstServer.getServerData().get(0);
-                        String videoUrl = firstEpisode.getLinkM3u8();
-
-                        Log.d("HERO_PLAY", "Tìm thấy tập 1 thành công. URL: " + videoUrl);
-
-                        if (videoUrl != null && !videoUrl.isEmpty()) {
-                            com.example.movie_app.models.Movie playMovie = new com.example.movie_app.models.Movie();
-                            playMovie.setMovieId(movie.getSlug());
-                            playMovie.setTitle(movie.getName());
-                            playMovie.setVideoUrl(videoUrl);
-                            playMovie.setDescription(response.getMovie() != null ? response.getMovie().getContent() : "");
-                            playMovie.setPosterUrl(movie.getPosterUrl());
-
-                            int totalEpisodes = firstServer.getServerData().size();
-                            playMovie.setEpisodes(totalEpisodes);
-                            playMovie.setCurrentEpisode(1); // Mặc định chạy tập 1, Room sẽ tự động nhảy số tập cũ nếu có lịch sử xem
-                            playMovie.setRating(4.5);
-
-                            ArrayList<String> episodeUrls = new ArrayList<>();
-                            ArrayList<String> episodeNames = new ArrayList<>();
-
-                            for(MovieDetailResponse.EpisodeData ep
-                                    : firstServer.getServerData()){
-
-                                episodeUrls.add(ep.getLinkM3u8());
-
-                                episodeNames.add(ep.getName());
-                            }
-
-                            playMovie.setEpisodeUrls(episodeUrls);
-                            playMovie.setEpisodeNames(episodeNames);
-
-                            Intent intent = new Intent(requireContext(), VideoPlayerActivity.class);
-                            intent.putExtra("movie", playMovie);
-                            startActivity(intent);
-                            return;
-                        }
-                    }
-                }
-                android.widget.Toast.makeText(requireContext(), "Không tìm thấy video phát cho phim này!", android.widget.Toast.LENGTH_SHORT).show();
-                Log.e("HERO_PLAY", "Không lấy được Episodes hoặc Link M3U8 từ API");
-            });
+        btnHeroDetail.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), MovieDetailActivity.class);
+            intent.putExtra("movie_slug", movie.getSlug());
+            intent.putExtra("movie_image", movie.getPosterUrl());
+            startActivity(intent);
         });
     }
 

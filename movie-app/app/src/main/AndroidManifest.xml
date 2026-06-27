@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -14,21 +15,36 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Movieapp"
         android:usesCleartextTraffic="true">
+
         <activity
-            android:name=".SystemSafetyManagementActivity"
+            android:name=".activities.SplashActivity"
+            android:exported="false">
+        </activity>
+
+        <activity
+            android:name=".activities.SystemSafetyManagementActivity"
+            android:exported="true" />
+        <activity
+            android:name=".activities.ModerationManagementActivity"
+            android:exported="true" />
+        <activity
+            android:name=".activities.MovieManagementActivity"
             android:exported="false" />
         <activity
-            android:name=".ModerationManagementActivity"
-            android:exported="false" />
+            android:name=".activities.DashboardAnalyticsActivity"
+            android:exported="true">
+
+        </activity>
+
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="true" >
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.HomeActivity"
             android:exported="false" />
@@ -40,8 +56,23 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+<<<<<<< HEAD
             android:name=".activities.VideoPlayerActivity"
             android:exported="false"/>
+=======
+            android:name=".activities.LoginActivity" />
+        <activity
+            android:name=".activities.RegisterActivity" />
+
+        <service
+            android:name=".network.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+>>>>>>> 66ebe0db9944785783cd46b3906243dee3116fb7
     </application>
 
 </manifest>
