@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
@@ -54,6 +55,13 @@ public class MovieDetailActivity extends AppCompatActivity {
     private ImageView btnSendComment;
     private DatabaseReference databaseReference;
     private String currentMovieId = "";
+    // lưu yeu thich
+    private FrameLayout btnAddToMyList;
+    private ImageView imgAddToMyList;
+
+    private boolean isFavorite = false;
+    private String currentUserId = "USER_ID_TEST";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +186,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         });
 
         loadRelatedMovies(info);
+        checkFavoriteState(info.getId());
+        btnAddToMyList.setOnClickListener(v -> toggleFavorite(info, finalImageUrl));
     }
 
     private String listToString(List<String> list) {
@@ -266,5 +276,38 @@ public class MovieDetailActivity extends AppCompatActivity {
                         Toast.makeText(this, "Gửi thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     });
         });
+    }
+    private void checkFavoriteState(String movieId) {
+        if (movieId == null || movieId.isEmpty()) return;
+
+        // Quan sát LiveData từ Room DB, tự động cập nhật UI
+        movieViewModel.isFavorite(currentUserId, movieId).observe(this, isFav -> {
+            this.isFavorite = (isFav != null && isFav);
+            updateFavoriteUI();
+        });
+    }
+
+    private void toggleFavorite(MovieDetailResponse.MovieDetail info, String imageUrl) {
+        if (info == null || info.getId() == null) return;
+
+        if (isFavorite) {
+            // Đã thích -> Nhấn vào thì Hủy thích
+            movieViewModel.removeFromFavorites(currentUserId, info.getId());
+            Toast.makeText(this, "Đã bỏ yêu thích", Toast.LENGTH_SHORT).show();
+        } else {
+            // Chưa thích -> Nhấn vào thì Thêm thích
+            movieViewModel.addToFavorites(currentUserId, info, imageUrl);
+            Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateFavoriteUI() {
+        if (isFavorite) {
+            imgAddToMyList.setImageResource(R.drawable.ic_done);
+            imgAddToMyList.setColorFilter(Color.parseColor("#4CAF50")); // Màu xanh
+        } else {
+            imgAddToMyList.setImageResource(R.drawable.ic_add);
+            imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8")); // Màu xám gốc
+        }
     }
 }
