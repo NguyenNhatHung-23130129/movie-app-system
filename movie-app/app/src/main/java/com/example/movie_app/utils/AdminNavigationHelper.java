@@ -19,16 +19,13 @@ import com.example.movie_app.R;
 public class AdminNavigationHelper {
 
     public static void setupAdminBottomNavigation(Activity activity) {
-        // Tìm các vùng chứa tab
         View navDashboard = activity.findViewById(R.id.nav_dashboard);
         View navMovies = activity.findViewById(R.id.nav_movies);
         View navModerate = activity.findViewById(R.id.nav_moderate);
         View navSafety = activity.findViewById(R.id.nav_safety);
 
-        // Highlight tab đang đứng
         highlightCurrentTab(activity);
 
-        // Thiết lập sự kiện click cho từng tab với kiểm tra an toàn
         if (navDashboard != null) {
             navDashboard.setOnClickListener(v -> navigate(activity, DashboardAnalyticsActivity.class));
         }
@@ -47,30 +44,25 @@ public class AdminNavigationHelper {
     }
 
     private static void navigate(Activity activity, Class<?> targetClass) {
-        // Nếu nhấn vào chính tab đang đứng thì không chuyển màn hình
         if (activity.getClass().equals(targetClass)) {
             return;
         }
 
-        try {
-            Intent intent = new Intent(activity, targetClass);
-            // FLAG_ACTIVITY_REORDER_TO_FRONT giúp chuyển tab mượt mà, không tạo lại Activity
-            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            activity.startActivity(intent);
-        } catch (Exception e) {
-            Toast.makeText(activity, "Lỗi chuyển màn hình: " + targetClass.getSimpleName(), Toast.LENGTH_SHORT).show();
-        }
+        Intent intent = new Intent(activity, targetClass);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        activity.startActivity(intent);
+        
+        // Không kết thúc activity cũ để giữ stack nếu cần, 
+        // hoặc dùng finish() nếu muốn tối ưu bộ nhớ
     }
 
     private static void highlightCurrentTab(Activity activity) {
-        int activeColor = Color.parseColor("#E50914"); // Màu đỏ chủ đạo
-        int inactiveColor = Color.parseColor("#BDC7D9"); // Màu xám mặc định
+        int activeColor = Color.parseColor("#E50914");
+        int inactiveColor = Color.parseColor("#BDC7D9");
 
-        // Reset màu tất cả các tab về mặc định
         resetTabColors(activity, inactiveColor);
 
-        // Đổi màu tab hiện tại
-        if (activity instanceof AdminDashboardActivity) {
+        if (activity instanceof DashboardAnalyticsActivity || activity instanceof AdminDashboardActivity) {
             applyColorToTab(activity, R.id.nav_dashboard, activeColor);
         } else if (activity instanceof MovieManagementActivity) {
             applyColorToTab(activity, R.id.nav_movies, activeColor);
@@ -89,10 +81,11 @@ public class AdminNavigationHelper {
     }
 
     private static void applyColorToTab(Activity activity, int layoutId, int color) {
-        ViewGroup layout = activity.findViewById(layoutId);
-        if (layout != null) {
-            for (int i = 0; i < layout.getChildCount(); i++) {
-                View child = layout.getChildAt(i);
+        View layout = activity.findViewById(layoutId);
+        if (layout instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) layout;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                View child = vg.getChildAt(i);
                 if (child instanceof ImageView) {
                     ((ImageView) child).setColorFilter(color);
                 } else if (child instanceof TextView) {
