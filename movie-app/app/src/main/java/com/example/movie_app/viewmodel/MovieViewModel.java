@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.movie_app.entity.FavoriteEntity;
 import com.example.movie_app.entity.WatchHistoryEntity;
 import com.example.movie_app.models.*;
 import com.example.movie_app.repository.HistoryRepository;
@@ -106,5 +107,23 @@ public class MovieViewModel extends AndroidViewModel {
 
     public void refreshData() {
         movieRepository.syncDataFromFirebase();
+    }
+    public LiveData<Boolean> isFavorite(String userId, String movieId) {
+        return movieRepository.isFavorite(userId, movieId);
+    }
+
+    public void addToFavorites(String userId, MovieDetailResponse.MovieDetail info, String finalImageUrl) {
+        FavoriteEntity fav = new FavoriteEntity(
+                userId,
+                info.getId(),
+                info.getName(),
+                finalImageUrl,
+                System.currentTimeMillis()
+        );
+        movieRepository.addFavorite(fav);
+    }
+
+    public void removeFromFavorites(String userId, String movieId) {
+        movieRepository.removeFavorite(userId, movieId);
     }
 }
