@@ -62,6 +62,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         isNested = getIntent().getBooleanExtra("IS_NESTED", false);
         initViews();
         setupTabClickListeners();
+        setupCommentAction();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
