@@ -1,28 +1,32 @@
 package com.example.movie_app.activities;
 
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import android.widget.TextView;
 
 import com.example.movie_app.R;
+import com.example.movie_app.adapter.ReportedContentAdapter;
+import com.example.movie_app.adapter.SystemLogAdapter;
 import com.example.movie_app.utils.AdminNavigationHelper;
+import com.example.movie_app.viewmodel.SystemSafetyViewModel;
 
 public class SystemSafetyManagementActivity extends AppCompatActivity {
 
-    private String reportCommentValue = "";
+    private TextView tvSafetyPercentage, tvSafetyStatus, btnBadgeUrgent, btnViewAllReports;
+    private TextView tvLockedAccountsCount, tvSecurityVersion;
     private SwitchCompat switchMaintenance;
-    private EditText edtReportContent1;
-    private TextView btnBadgeUrgent;
-    private TextView btnIgnoreReport1;
-    private TextView btnDeleteReport1;
-    private TextView btnViewAllReports;
-    private View btnPanelLockedAccounts;
+
+    private RecyclerView rvReportedContents, rvSystemLogs;
+    private ReportedContentAdapter reportedAdapter;
+    private SystemLogAdapter logAdapter;
+
+    private SystemSafetyViewModel safetyViewModel;
+    private boolean isUserInitiatedChange = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,39 +34,78 @@ public class SystemSafetyManagementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_system_safety);
 
         initViews();
-        setupListeners();
+        setupRecyclerViews();
+        initViewModel();
+        setupInteractions();
 
-        // Kích hoạt thanh điều hướng Admin
+        // Khởi tạo thanh điều hướng Admin
         AdminNavigationHelper.setupAdminBottomNavigation(this);
     }
 
     private void initViews() {
-        switchMaintenance = findViewById(R.id.switch_maintenance);
-        edtReportContent1 = findViewById(R.id.edt_report_content_1);
+        tvSafetyPercentage = findViewById(R.id.tv_safety_percentage);
+        tvSafetyStatus = findViewById(R.id.tv_safety_status);
         btnBadgeUrgent = findViewById(R.id.btn_badge_urgent);
-        btnIgnoreReport1 = findViewById(R.id.btn_ignore_report_1);
-        btnDeleteReport1 = findViewById(R.id.btn_delete_report_1);
         btnViewAllReports = findViewById(R.id.btn_view_all_reports);
-        btnPanelLockedAccounts = findViewById(R.id.btn_panel_locked_accounts);
+        tvLockedAccountsCount = findViewById(R.id.tv_locked_accounts_count);
+        tvSecurityVersion = findViewById(R.id.tv_security_version);
+        switchMaintenance = findViewById(R.id.switch_maintenance);
+
+        rvReportedContents = findViewById(R.id.rv_reported_contents);
+        rvSystemLogs = findViewById(R.id.rv_system_logs);
     }
 
-    private void setupListeners() {
-        edtReportContent1.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                reportCommentValue = s.toString();
+    private void setupRecyclerViews() {
+        rvReportedContents.setLayoutManager(new LinearLayoutManager(this));
+        reportedAdapter = new ReportedContentAdapter(
+                report -> safetyViewModel.handleReport(report.getId(), "IGNORE"),
+                report -> safetyViewModel.handleReport(report.getId(), "DELETE")
+        );
+        rvReportedContents.setAdapter(reportedAdapter);
+
+        rvSystemLogs.setLayoutManager(new LinearLayoutManager(this));
+        logAdapter = new SystemLogAdapter();
+        rvSystemLogs.setAdapter(logAdapter);
+    }
+
+    private void initViewModel() {
+        safetyViewModel = new ViewModelProvider(this).get(SystemSafetyViewModel.class);
+
+        safetyViewModel.getDashboardStats().observe(this, stats -> {
+            if (stats != null) {
+                tvSafetyPercentage.setText(stats.getSafetyPercentage() + "%");
+                tvSafetyStatus.setText(stats.getSafetyStatusText());
+                btnBadgeUrgent.setText(stats.getUrgentCount() + " Cấp bách");
+                btnViewAllReports.setText("Xem tất cả báo cáo (" + stats.getTotalReportsCount() + ")");
+                tvLockedAccountsCount.setText(String.valueOf(stats.getLockedAccountsCount()));
+                tvSecurityVersion.setText(stats.getSecurityVersion());
+
+                isUserInitiatedChange = false;
+                switchMaintenance.setChecked(stats.isMaintenanceModeActive());
+                isUserInitiatedChange = true;
             }
-            @Override public void afterTextChanged(Editable s) {}
         });
 
+        safetyViewModel.getReportedList().observe(this, reports -> {
+            if (reports != null) reportedAdapter.submitList(reports);
+        });
+
+        safetyViewModel.getSystemLogs().observe(this, logs -> {
+            if (logs != null) logAdapter.submitList(logs);
+        });
+
+        safetyViewModel.getActionStatusMessage().observe(this, message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void setupInteractions() {
         switchMaintenance.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Xử lý logic bảo trì
+            if (isUserInitiatedChange) {
+                safetyViewModel.changeMaintenanceMode(isChecked);
+            }
         });
-
-        btnBadgeUrgent.setOnClickListener(v -> {});
-        btnIgnoreReport1.setOnClickListener(v -> {});
-        btnDeleteReport1.setOnClickListener(v -> {});
-        btnViewAllReports.setOnClickListener(v -> {});
-        btnPanelLockedAccounts.setOnClickListener(v -> {});
     }
 }

@@ -57,7 +57,7 @@ public class AdminMovieAdapter extends RecyclerView.Adapter<AdminMovieAdapter.Ad
 
     static class AdminMovieViewHolder extends RecyclerView.ViewHolder {
         ImageView imgPoster, btnEdit, btnDelete;
-        TextView tvTitle, tvCategory, tvStatus, tvRating, tvViews;
+        TextView tvTitle, tvCategory, tvStatus, tvRating;
 
         public AdminMovieViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -66,7 +66,6 @@ public class AdminMovieAdapter extends RecyclerView.Adapter<AdminMovieAdapter.Ad
             tvCategory = itemView.findViewById(R.id.tv_movie_category);
             tvStatus = itemView.findViewById(R.id.tv_movie_status);
             tvRating = itemView.findViewById(R.id.tv_movie_rating);
-            tvViews = itemView.findViewById(R.id.tv_movie_views);
             btnEdit = itemView.findViewById(R.id.btn_movie_edit);
             btnDelete = itemView.findViewById(R.id.btn_movie_delete);
         }
@@ -82,14 +81,14 @@ public class AdminMovieAdapter extends RecyclerView.Adapter<AdminMovieAdapter.Ad
             }
             tvCategory.setText(movie.getYear() + " • " + categories);
 
-            // Giả lập dữ liệu cho status, rating, views nếu chưa có trong model
+            // Cập nhật trạng thái hiển thị
             tvStatus.setText("ĐÃ XUẤT BẢN"); 
             tvRating.setText("8.5");
-            tvViews.setText("0 lượt xem");
 
             Glide.with(itemView.getContext())
-                    .load(movie.getFullThumbUrl())
+                    .load(movie.getFullPosterUrl())
                     .placeholder(R.drawable.ic_movie_placeholder)
+                    .centerCrop()
                     .into(imgPoster);
 
             btnEdit.setOnClickListener(v -> {

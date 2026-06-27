@@ -1,138 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
-    android:background="@drawable/bg_movie_card"
-    android:orientation="vertical"
-    android:elevation="4dp">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="180dp">
-
-        <ImageView
-            android:id="@+id/img_movie_poster"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_movie_placeholder" />
-
-        <TextView
-            android:id="@+id/tv_movie_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:background="#3322C55E"
-            android:paddingVertical="4dp"
-            android:paddingHorizontal="10dp"
-            android:textColor="#4ADE80"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:text="ĐÃ XUẤT BẢN"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="12dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:layout_marginEnd="4dp"
-                    android:src="@drawable/ic_star" />
-                <TextView
-                    android:id="@+id/tv_movie_rating"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#E9C400"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:text="8.9" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_movie_views"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#9CA3AF"
-                android:textSize="12sp"
-                android:text="2.4M lượt xem" />
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#1A1C20">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-        <TextView
-            android:id="@+id/tv_movie_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:text="Dòng Chảy Thời Gian" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="100dp"
+            android:layout_height="140dp"
+            app:cardCornerRadius="8dp"
+            app:strokeWidth="0dp">
 
-        <TextView
-            android:id="@+id/tv_movie_category"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="#9CA3AF"
-            android:textSize="12sp"
-            android:text="2024 • Khoa học viễn tưởng" />
+            <ImageView
+                android:id="@+id/img_movie_poster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_movie_placeholder" />
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
 
-            <ImageView
-                android:id="@+id/btn_movie_edit"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="12dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_edit"
-                app:tint="#9CA3AF" />
+            <TextView
+                android:id="@+id/tv_movie_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="Dòng Chảy Thời Gian" />
 
-            <ImageView
-                android:id="@+id/btn_movie_delete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_delete"
-                app:tint="#9CA3AF" />
+            <TextView
+                android:id="@+id/tv_movie_category"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="#9CA3AF"
+                android:textSize="13sp"
+                android:text="2024 • Khoa học viễn tưởng" />
+
+            <TextView
+                android:id="@+id/tv_movie_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="#3322C55E"
+                android:paddingVertical="2dp"
+                android:paddingHorizontal="8dp"
+                android:textColor="#4ADE80"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:text="ĐÃ XUẤT BẢN" />
 
             <View
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <ImageView
-                android:id="@+id/btn_movie_more"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_more"
-                app:tint="#9CA3AF" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/ic_star"
+                        app:tint="#E9C400" />
+                    <TextView
+                        android:id="@+id/tv_movie_rating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:textColor="#E9C400"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:text="8.9" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/btn_movie_edit"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_edit"
+                    app:tint="#4A90E2" />
+
+                <ImageView
+                    android:id="@+id/btn_movie_delete"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:padding="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_delete"
+                    app:tint="#E50914" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</androidx.cardview.widget.CardView>

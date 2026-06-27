@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#18181A">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tv_dialog_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="THÔNG TIN PHIM"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Tên phim -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tên phim"
+            android:textColor="#8C8C8C"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/edt_movie_name"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_edit_text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:hint="Nhập tên phim..."
+            android:textColorHint="#4B5563"
+            android:inputType="text"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Slug -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Slug (URL)"
+            android:textColor="#8C8C8C"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/edt_movie_slug"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_edit_text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:hint="ví dụ: tay-du-ky-1986"
+            android:textColorHint="#4B5563"
+            android:inputType="text"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Năm"
+                    android:textColor="#8C8C8C"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
+                <EditText
+                    android:id="@+id/edt_movie_year"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_edit_text"
+                    android:paddingHorizontal="12dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:hint="2024"
+                    android:textColorHint="#4B5563"
+                    android:inputType="number"
+                    android:layout_marginBottom="16dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Loại phim"
+                    android:textColor="#8C8C8C"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="8dp" />
+                <EditText
+                    android:id="@+id/edt_movie_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_edit_text"
+                    android:paddingHorizontal="12dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:hint="series/single..."
+                    android:textColorHint="#4B5563"
+                    android:inputType="text"
+                    android:layout_marginBottom="16dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tên gốc"
+            android:textColor="#8C8C8C"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/edt_movie_origin_name"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_edit_text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:hint="Tên tiếng Anh hoặc tên gốc"
+            android:textColorHint="#4B5563"
+            android:inputType="text"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Link Poster (Dọc)"
+            android:textColor="#8C8C8C"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/edt_movie_poster"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_edit_text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:hint="https://phimimg.com/..."
+            android:textColorHint="#4B5563"
+            android:inputType="textUri"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Link Thumbnail (Ngang)"
+            android:textColor="#8C8C8C"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/edt_movie_thumb"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_edit_text"
+            android:paddingHorizontal="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:hint="https://phimimg.com/..."
+            android:textColorHint="#4B5563"
+            android:inputType="textUri"
+            android:layout_marginBottom="8dp" />
+
+    </LinearLayout>
+</ScrollView>
