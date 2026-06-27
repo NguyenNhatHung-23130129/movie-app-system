@@ -4,27 +4,20 @@ import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.lifecycle.ViewModelProvider;
-
 import com.example.movie_app.R;
-import com.example.movie_app.viewmodel.AuthViewModel;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText edtName, edtEmailReg, edtPasswordReg, edtConfirmPassword;
     private AppCompatButton btnRegister;
     private TextView tvLoginNow;
-    private AuthViewModel authViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
         edtName = findViewById(R.id.edtName);
         edtEmailReg = findViewById(R.id.edtEmailReg);
@@ -50,23 +43,34 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
-            // Kiểm tra mật khẩu xác nhận
             if (!password.equals(confirmPassword)) {
                 Toast.makeText(RegisterActivity.this, "Mật khẩu xác nhận không khớp!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Gọi ViewModel Đăng ký
-            authViewModel.performRegister(name, email, password).observe(this, response -> {
-                if (response != null) {
-                    if (response.isSuccess()) {
-                        Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
-                        finish(); // Đóng màn hình đăng ký, tự động trở về Login
-                    } else {
-                        Toast.makeText(RegisterActivity.this, response.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
+            // XÁC THỰC TRỰC TIẾP QUA FIREBASE SDK
+            com.google.firebase.auth.FirebaseAuth.getInstance()
+                    .createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            // Cập nhật DisplayName (Họ và tên) cho tài khoản vừa tạo
+                            var user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+                            if (user != null) {
+                                com.google.firebase.auth.UserProfileChangeRequest profileUpdates =
+                                        new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                                .setDisplayName(name)
+                                                .build();
+                                user.updateProfile(profileUpdates);
+                            }
+
+                            Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
+                            finish(); // Tự động quay về màn hình Login
+                        } else {
+                            // Hiển thị thông báo lỗi chi tiết từ Firebase (ví dụ: mật khẩu quá ngắn, trùng email...)
+                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Đăng ký thất bại!";
+                            Toast.makeText(RegisterActivity.this, "Lỗi: " + errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    });
         });
     }
 }
