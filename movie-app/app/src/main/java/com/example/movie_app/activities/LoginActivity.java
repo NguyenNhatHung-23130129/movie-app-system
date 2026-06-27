@@ -3,34 +3,24 @@ package com.example.movie_app.activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.lifecycle.ViewModelProvider;
-
-import com.example.movie_app.MainActivity;
 import com.example.movie_app.R;
-import com.example.movie_app.viewmodel.AuthViewModel;
-import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
     private EditText edtEmail, edtPassword;
     private AppCompatButton btnLogin;
     private TextView tvRegisterNow;
-    private AuthViewModel authViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
         edtEmail = findViewById(R.id.edtEmail);
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -49,26 +39,42 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            authViewModel.performLogin(email, password).observe(this, response -> {
-                if (response == null) {
+            // XÁC THỰC MẬT KHẨU TRỰC TIẾP QUA FIREBASE SDK
+            com.google.firebase.auth.FirebaseAuth.getInstance()
+                    .signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            // Lấy User ID duy nhất (UID) do Firebase cấp
+                            var user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+                            if (user != null) {
+                                String currentUserId = user.getUid();
 
-                        return;
-                }
+                                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                                prefs.edit().putString("USER_ID", currentUserId).apply();
 
-                if (response.isSuccess()) {
-                    String currentUserId = response.getUserId();
-                    if (currentUserId != null) {
-                        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
-                        prefs.edit().putString("USER_ID", currentUserId).apply();
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                        finish();
-                    } else {
-                        Log.e("LOGIN_DEBUG", "LỖI: userId từ server trả về là NULL");
-                    }
-                } else {
-                    Toast.makeText(LoginActivity.this, response.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            });
+                                Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
+
+                                // Chuyển sang màn hình chính HomeActivity
+                                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                finish();
+                            }
+                        } else {
+                            Exception exception = task.getException();
+                            String errorMsg = "Đăng nhập thất bại. Vui lòng thử lại sau!";
+
+                            if (exception instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException) {
+                                errorMsg = "Tài khoản Email này không tồn tại trong hệ thống!";
+                            }
+                            else if (exception instanceof com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+                                errorMsg = "Mật khẩu không chính xác. Vui lòng kiểm tra lại!";
+                            }
+                            else if (exception != null && exception.getMessage() != null) {
+                                errorMsg = exception.getMessage();
+                            }
+
+                            Toast.makeText(LoginActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    });
         });
     }
 }
