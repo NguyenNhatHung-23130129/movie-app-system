@@ -1,18 +1,72 @@
 package com.example.movie_app.models;
 
-public class Pagination {
-    private int totalItems;
-    private int totalItemsPerPage;
-    private int currentPage;
-    private int pageCount;
+import com.google.gson.annotations.SerializedName;
+import com.google.firebase.database.PropertyName;
 
-    // Getter và Setter
-    public int getTotalItems() { return totalItems; }
-    public void setTotalItems(int totalItems) { this.totalItems = totalItems; }
-    public int getTotalItemsPerPage() { return totalItemsPerPage; }
-    public void setTotalItemsPerPage(int totalItemsPerPage) { this.totalItemsPerPage = totalItemsPerPage; }
-    public int getCurrentPage() { return currentPage; }
-    public void setCurrentPage(int currentPage) { this.currentPage = currentPage; }
-    public int getPageCount() { return pageCount; }
-    public void setPageCount(int pageCount) { this.pageCount = pageCount; }
+public class Pagination {
+    @SerializedName("totalItems")
+    @PropertyName("totalItems")
+    private int totalItems;
+
+    @SerializedName("totalItemsPerPage")
+    @PropertyName("totalItemsPerPage")
+    private int totalItemsPerPage;
+
+    @SerializedName("currentPage")
+    @PropertyName("currentPage")
+    private int currentPage;
+
+    @SerializedName("totalPages")
+    @PropertyName("totalPages")
+    private int totalPages;
+
+    public Pagination() {
+    }
+
+    public Pagination(int totalItems, int totalItemsPerPage, int currentPage, int totalPages) {
+        this.totalItems = totalItems;
+        this.totalItemsPerPage = totalItemsPerPage;
+        this.currentPage = currentPage;
+        this.totalPages = totalPages;
+    }
+
+    @PropertyName("totalItems")
+    public int getTotalItems() {
+        return totalItems;
+    }
+
+    @PropertyName("totalItems")
+    public void setTotalItems(int totalItems) {
+        this.totalItems = totalItems;
+    }
+
+    @PropertyName("totalItemsPerPage")
+    public int getTotalItemsPerPage() {
+        return totalItemsPerPage;
+    }
+
+    @PropertyName("totalItemsPerPage")
+    public void setTotalItemsPerPage(int totalItemsPerPage) {
+        this.totalItemsPerPage = totalItemsPerPage;
+    }
+
+    @PropertyName("currentPage")
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    @PropertyName("currentPage")
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    @PropertyName("totalPages")
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    @PropertyName("totalPages")
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
 }

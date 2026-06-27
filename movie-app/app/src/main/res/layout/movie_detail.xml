@@ -263,6 +263,7 @@
                     android:id="@+id/tvDetailDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="100dp"
                     android:paddingHorizontal="16dp"
                     android:text="Đang tải dữ liệu nội dung..."
                     android:textColor="#E2E2E8"
@@ -296,6 +297,7 @@
                             android:id="@+id/tvDetailDirector"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="20dp"
                             android:text="Đang cập nhật"
                             android:textColor="#FFFFFF"
                             android:textStyle="bold"
@@ -324,6 +326,7 @@
                             android:id="@+id/tvDetailActor"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="20dp"
                             android:text="Đang cập nhật"
                             android:textColor="#FFFFFF"
                             android:textStyle="bold"
@@ -351,6 +354,7 @@
                             android:id="@+id/tvDetailCountry"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="20dp"
                             android:text="Đang cập nhật"
                             android:textColor="#FFFFFF"
                             android:textStyle="bold"
@@ -378,6 +382,7 @@
                             android:id="@+id/tvDetailStatus"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:minHeight="20dp"
                             android:text="Đang cập nhật"
                             android:textColor="#FFFFFF"
                             android:textStyle="bold"
@@ -530,12 +535,4 @@
                 app:tint="#FFFFFF"/>
         </LinearLayout>
     </RelativeLayout>
-
-    <include
-        android:id="@+id/includeFooter"
-        layout="@layout/home_bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

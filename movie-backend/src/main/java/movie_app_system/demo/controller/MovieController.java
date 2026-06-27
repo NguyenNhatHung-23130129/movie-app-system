@@ -1,12 +1,13 @@
 package movie_app_system.demo.controller;
 
-import com.google.gson.Gson;
 import movie_app_system.demo.api.KKPhimClient;
 import movie_app_system.demo.dto.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
@@ -16,147 +17,87 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/movies")
 public class MovieController {
+    private static final Logger logger = LoggerFactory.getLogger(MovieController.class);
 
     @Autowired
     private KKPhimClient kkPhimClient;
 
     @GetMapping("/latest")
     public ResponseEntity<?> getLatestMovies(@RequestParam(defaultValue = "1") int page) {
-        try {
-            Response<MovieResponse> retrofitResponse = kkPhimClient.getNewMovies(page).execute();
-
-            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                return ResponseEntity.ok(retrofitResponse.body());
-            } else {
-                return ResponseEntity.status(500).body("Không thể lấy dữ liệu từ server KKPhim đối tác.");
-            }
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Lỗi kết nối mạng giữa Backend và KKPhim: " + e.getMessage());
-        }
+        return executeListCall(kkPhimClient.getNewMovies(page), "Không thể lấy dữ liệu phim mới");
     }
 
     @GetMapping("/series")
     public ResponseEntity<?> getSeriesMovies(@RequestParam(defaultValue = "1") int page) {
-        try {
-            Response<MovieCategoryResponse> retrofitResponse = kkPhimClient.getSeriesMovies(page).execute();
-
-            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                java.util.List<MovieItem> items = retrofitResponse.body().getData().getItems();
-                java.util.Map<String, Object> cleanResponse = new java.util.HashMap<>();
-                cleanResponse.put("items", items);
-
-                return ResponseEntity.ok(cleanResponse);
-            } else {
-                return ResponseEntity.status(500).body("Không thể lấy dữ liệu phim bộ từ KKPhim.");
-            }
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Lỗi kết nối mạng: " + e.getMessage());
-        }
+        return executeV1Call(kkPhimClient.getSeriesMovies(page), "Không thể lấy dữ liệu phim bộ");
     }
 
     @GetMapping("/single")
     public ResponseEntity<?> getSingleMovies(@RequestParam(defaultValue = "1") int page) {
-        try {
-            Response<MovieCategoryResponse> retrofitResponse = kkPhimClient.getSingleMovies(page).execute();
+        return executeV1Call(kkPhimClient.getSingleMovies(page), "Không thể lấy dữ liệu phim lẻ");
+    }
 
-            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                java.util.List<MovieItem> items = retrofitResponse.body().getData().getItems();
-
-                java.util.Map<String, Object> cleanResponse = new java.util.HashMap<>();
-                cleanResponse.put("items", items);
-
-                return ResponseEntity.ok(cleanResponse);
-            } else {
-                return ResponseEntity.status(500).body("Không thể lấy dữ liệu phim lẻ từ KKPhim.");
-            }
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Lỗi kết nối mạng: " + e.getMessage());
-        }
+    @GetMapping("/search")
+    public ResponseEntity<?> searchMovies(@RequestParam String keyword) {
+        return executeV1Call(kkPhimClient.searchMovies(keyword), "Không thể tìm kiếm phim");
     }
 
     @GetMapping("/genres")
     public ResponseEntity<?> getAllGenres() {
         try {
-            Response<List<GenreResponse>> retrofitResponse = kkPhimClient.getRemoteGenres().execute();
-
+            Response<List<Category>> retrofitResponse = kkPhimClient.getRemoteGenres().execute();
             if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                List<GenreResponse> originalGenres = retrofitResponse.body();
-                List<GenreResponse> customGenres = new ArrayList<>();
-
-                GenreResponse allGenre = new GenreResponse();
-                allGenre.setId("all");
-                allGenre.setName("Tất cả");
-                allGenre.setSlug("all");
-                customGenres.add(allGenre);
-
-                customGenres.addAll(originalGenres);
-
+                List<Category> customGenres = new ArrayList<>(retrofitResponse.body());
+                Category allGenre = new Category("all", "Tất cả", "all");
+                customGenres.add(0, allGenre);
                 return ResponseEntity.ok(customGenres);
-            } else {
-                return ResponseEntity.status(500).body("Không thể lấy dữ liệu thể loại từ KKPhim.");
             }
+            return ResponseEntity.status(500).body("Không thể lấy dữ liệu thể loại.");
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Lỗi kết nối mạng khi lấy thể loại: " + e.getMessage());
+            return ResponseEntity.status(500).body("Lỗi kết nối: " + e.getMessage());
         }
     }
 
     @GetMapping("/detail/{slug}")
     public ResponseEntity<?> getMovieDetail(@PathVariable String slug) {
         try {
-            Response<MovieDetailResponse> retrofitResponse = kkPhimClient.getMovieDetail(slug).execute();
-
-            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                MovieDetailResponse movieDetail = retrofitResponse.body();
-
-                if (!movieDetail.isStatus() || movieDetail.getMovie() == null) {
-                    return ResponseEntity.status(404).body("{\"message\": \"Không tìm thấy bộ phim này trên hệ thống!\"}");
-                }
-
-                return ResponseEntity.ok(movieDetail);
-            } else {
-                return ResponseEntity.status(404).body("{\"message\": \"Không tìm thấy thông tin phim.\"}");
+            Response<MovieDetailResponse> response = kkPhimClient.getMovieDetail(slug).execute();
+            if (response.isSuccessful() && response.body() != null) {
+                return ResponseEntity.ok(response.body());
             }
+            return ResponseEntity.status(404).body("{\"message\": \"Không tìm thấy phim!\"}");
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("{\"message\": \"Lỗi kết nối mạng: " + e.getMessage() + "\"}");
+            return ResponseEntity.status(500).body("{\"message\": \"Lỗi mạng: " + e.getMessage() + "\"}");
         }
     }
 
     @GetMapping("/genres/{slug}")
     public ResponseEntity<?> getMoviesByCategory(@PathVariable String slug, @RequestParam(defaultValue = "1") int page) {
-        if ("all".equals(slug)) {
-            return getLatestMovies(page);
-        }
-        try {
-            Response<MovieCategoryResponse> retrofitResponse = kkPhimClient.getMoviesByCategory(slug, page).execute();
+        if ("all".equals(slug)) return getLatestMovies(page);
+        return executeV1Call(kkPhimClient.getMoviesByCategory(slug, page), "Không thể lấy dữ liệu thể loại");
+    }
 
-            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                java.util.List<MovieItem> items = retrofitResponse.body().getData().getItems();
-                java.util.Map<String, Object> cleanResponse = new java.util.HashMap<>();
-                cleanResponse.put("items", items);
-                return ResponseEntity.ok(cleanResponse);
-            } else {
-                return ResponseEntity.status(500).body("Không thể lấy dữ liệu từ KKPhim.");
+    private ResponseEntity<?> executeV1Call(Call<KKPhimV1Response> call, String errorMessage) {
+        try {
+            Response<KKPhimV1Response> response = call.execute();
+            if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                return ResponseEntity.ok(response.body().getData().getItems());
             }
+            return ResponseEntity.status(500).body(errorMessage);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Lỗi kết nối: " + e.getMessage());
+            return ResponseEntity.status(500).body("Lỗi: " + e.getMessage());
         }
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<?> searchMovies(@RequestParam("keyword") String keyword) {
+    private ResponseEntity<?> executeListCall(Call<KKPhimListResponse> call, String errorMessage) {
         try {
-            Response<MovieCategoryResponse> retrofitResponse = kkPhimClient.searchMovies(keyword).execute();
-
-            if (retrofitResponse.isSuccessful() && retrofitResponse.body() != null) {
-                java.util.List<MovieItem> items = retrofitResponse.body().getData().getItems();
-                java.util.Map<String, Object> cleanResponse = new java.util.HashMap<>();
-                cleanResponse.put("items", items);
-                return ResponseEntity.ok(cleanResponse);
-            } else {
-                return ResponseEntity.status(500).body("Không tìm thấy kết quả.");
+            Response<KKPhimListResponse> response = call.execute();
+            if (response.isSuccessful() && response.body() != null) {
+                return ResponseEntity.ok(response.body().getItems());
             }
+            return ResponseEntity.status(500).body(errorMessage);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Lỗi kết nối: " + e.getMessage());
+            return ResponseEntity.status(500).body("Lỗi: " + e.getMessage());
         }
     }
 }

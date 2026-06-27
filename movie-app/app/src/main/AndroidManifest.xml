@@ -14,21 +14,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Movieapp"
         android:usesCleartextTraffic="true">
+
+        <activity
+            android:name=".activities.SplashActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".SystemSafetyManagementActivity"
             android:exported="false" />
         <activity
             android:name=".ModerationManagementActivity"
             android:exported="false" />
+
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:exported="false" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".activities.HomeActivity"
             android:exported="false" />
@@ -39,6 +45,10 @@
             android:name=".activities.SearchActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".activities.LoginActivity" />
+        <activity
+            android:name=".activities.RegisterActivity" />
     </application>
 
 </manifest>
