@@ -24,6 +24,7 @@ import com.example.movie_app.models.Movie;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MovieDetailActivity extends AppCompatActivity {
@@ -122,52 +123,116 @@ public class MovieDetailActivity extends AppCompatActivity {
                 movieViewModel = new ViewModelProvider(MovieDetailActivity.this).get(MovieViewModel.class);
             }
 
-            movieViewModel.getMovieDetail(currentMovieDetail.getSlug()).observe(MovieDetailActivity.this, response -> {
-                if (response != null && response.getEpisodes() != null && !response.getEpisodes().isEmpty()) {
+            movieViewModel.getMovieDetail(currentMovieDetail.getSlug())
+                    .observe(MovieDetailActivity.this, response -> {
 
-                    // Lấy server đầu tiên
-                    MovieDetailResponse.EpisodeServer firstServer = response.getEpisodes().get(0);
+                        Log.d("DEBUG_VIDEO", "Response = " + response);
 
-                    if (firstServer.getServerData() != null && !firstServer.getServerData().isEmpty()) {
+                        if(response == null){
+                            Log.e("DEBUG_VIDEO","response NULL");
+                            return;
+                        }
 
-                        // Lấy tập đầu tiên
-                        MovieDetailResponse.EpisodeData firstEpisode = firstServer.getServerData().get(0);
-                        String videoUrl = firstEpisode.getLinkM3u8();
+                        if(response.getEpisodes() == null){
+                            Log.e("DEBUG_VIDEO","episodes NULL");
+                            return;
+                        }
 
-                        Log.d("WATCH_NOW", "Server Name: " + firstServer.getServerName());
-                        Log.d("WATCH_NOW", "First Episode: " + firstEpisode.getName());
-                        Log.d("WATCH_NOW", "Video URL: " + videoUrl);
+                        Log.d(
+                                "DEBUG_VIDEO",
+                                "episodes size = " + response.getEpisodes().size()
+                        );
 
-                        if (videoUrl != null && !videoUrl.isEmpty()) {
-                            //  Tạo Movie object
-                            Movie movie = new Movie();
-                            movie.setMovieId(currentMovieDetail.getSlug());
-                            movie.setTitle(currentMovieDetail.getName());
-                            movie.setVideoUrl(videoUrl);
-                            movie.setDescription(currentMovieDetail.getContent());
-                            movie.setPosterUrl(currentMovieDetail.getPosterUrl());
+                        if(response.getEpisodes().isEmpty()){
+                            Log.e("DEBUG_VIDEO","episodes EMPTY");
+                            return;
+                        }
 
-                            //  Tính số tập
-                            int totalEpisodes = firstServer.getServerData().size();
-                            movie.setEpisodes(totalEpisodes);
-                            movie.setCurrentEpisode(1);
-                            movie.setRating(4.5);
+                        MovieDetailResponse.EpisodeServer firstServer =
+                                response.getEpisodes().get(0);
 
-                            Log.d("WATCH_NOW", "Total episodes: " + totalEpisodes);
+                        if(firstServer == null){
+                            Toast.makeText(
+                                    MovieDetailActivity.this,
+                                    "Không tìm thấy server phim",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return;
+                        }
 
-                            //  GỬI QUA INTENT
-                            Intent intent = new Intent(MovieDetailActivity.this, VideoPlayerActivity.class);
-                            intent.putExtra("movie", movie);
-                            startActivity(intent);
+                        if(firstServer.getServerData() == null){
+                            Toast.makeText(
+                                    MovieDetailActivity.this,
+                                    "Không có dữ liệu tập phim",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                            Log.e("DEBUG_VIDEO",
+                                    "serverData NULL");
 
                             return;
                         }
-                    }
-                }
 
-                Toast.makeText(MovieDetailActivity.this, "Không tìm thấy video phim!", Toast.LENGTH_SHORT).show();
-                Log.e("WATCH_NOW", "No episodes found or video URL is empty");
-            });
+                        if(firstServer.getServerData().isEmpty()){
+                            Toast.makeText(
+                                    MovieDetailActivity.this,
+                                    "Danh sách tập rỗng",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return;
+                        }
+
+                        MovieDetailResponse.EpisodeData firstEpisode =
+                                firstServer.getServerData().get(0);
+
+                        String videoUrl = firstEpisode.getLinkM3u8();
+
+                        Log.d("DEBUG_VIDEO", "videoUrl = " + videoUrl);
+
+                        if(videoUrl == null || videoUrl.isEmpty()){
+                            Toast.makeText(
+                                    MovieDetailActivity.this,
+                                    "Không tìm thấy video phim!",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return;
+                        }
+
+                        Movie playMovie = new Movie();
+
+                        playMovie.setMovieId(currentMovieDetail.getSlug());
+                        playMovie.setTitle(currentMovieDetail.getName());
+                        playMovie.setDescription(currentMovieDetail.getContent());
+
+                        ArrayList<String> episodeUrls = new ArrayList<>();
+                        ArrayList<String> episodeNames = new ArrayList<>();
+
+                        for (MovieDetailResponse.EpisodeData ep :
+                                firstServer.getServerData()) {
+
+                            episodeUrls.add(ep.getLinkM3u8());
+                            episodeNames.add(ep.getName());
+                        }
+
+                        playMovie.setEpisodeUrls(episodeUrls);
+                        playMovie.setEpisodeNames(episodeNames);
+
+                        playMovie.setVideoUrl(episodeUrls.get(0));
+
+                        playMovie.setEpisodes(episodeUrls.size());
+
+                        playMovie.setCurrentEpisode(1);
+
+                        Intent intent =
+                                new Intent(
+                                        MovieDetailActivity.this,
+                                        VideoPlayerActivity.class
+                                );
+
+                        intent.putExtra("movie", playMovie);
+
+                        startActivity(intent);
+                    });
         });
     }
 

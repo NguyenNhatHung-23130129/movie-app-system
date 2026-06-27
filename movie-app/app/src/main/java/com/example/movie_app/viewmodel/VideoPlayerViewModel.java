@@ -9,7 +9,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.movie_app.models.Movie;
-import com.example.movie_app.models.ResumeData;  // ✅ Import ResumeData
+import com.example.movie_app.models.ResumeData;
 import com.example.movie_app.repository.VideoRepository;
 
 public class VideoPlayerViewModel extends AndroidViewModel {
@@ -17,7 +17,7 @@ public class VideoPlayerViewModel extends AndroidViewModel {
 
     private VideoRepository videoRepository;
     private MutableLiveData<Movie> currentMovie;
-    private LiveData<ResumeData> resumeData;
+    private MutableLiveData<ResumeData> resumeData = new MutableLiveData<>();
     private MutableLiveData<String> errorMessage;
     private MutableLiveData<Boolean> isLoading;
 
@@ -43,19 +43,31 @@ public class VideoPlayerViewModel extends AndroidViewModel {
     }
 
     public void loadResumeData(String movieId) {
+
         isLoading.postValue(true);
+
         Log.d(TAG, "Loading resume data for movie: " + movieId);
 
-        resumeData = videoRepository.getResumeData(movieId);
+        LiveData<ResumeData> source =
+                videoRepository.getResumeData(movieId);
 
-        resumeData.observeForever(resume -> {
+        source.observeForever(resume -> {
+
             if (resume != null) {
+
                 Log.d(TAG, "Resume found:");
-                Log.d(TAG, "   Position: " + resume.getCurrentPosition() + " ms");
-                Log.d(TAG, "   Episode: " + resume.getCurrentEpisode());
+                Log.d(TAG, "Position: " + resume.getCurrentPosition());
+                Log.d(TAG, "Episode: " + resume.getCurrentEpisode());
+
+                resumeData.postValue(resume);
+
             } else {
-                Log.d(TAG, "No resume found - starting from beginning");
+
+                Log.d(TAG, "No resume found");
+
+                resumeData.postValue(null);
             }
+
             isLoading.postValue(false);
         });
     }

@@ -1,6 +1,7 @@
 package com.example.movie_app.models;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class Movie implements Serializable {
     private String movieId;
@@ -8,6 +9,8 @@ public class Movie implements Serializable {
     private String description;
     private String posterUrl;
     private String videoUrl;
+    private ArrayList<String> episodeUrls;
+    private ArrayList<String> episodeNames;
     private long duration;
     private int episodes;
     private int currentEpisode;
@@ -22,6 +25,22 @@ public class Movie implements Serializable {
         this.videoUrl = videoUrl;
         this.duration = duration;
         this.currentEpisode = 1;
+    }
+
+    public ArrayList<String> getEpisodeUrls() {
+        return episodeUrls;
+    }
+
+    public void setEpisodeUrls(ArrayList<String> episodeUrls) {
+        this.episodeUrls = episodeUrls;
+    }
+
+    public ArrayList<String> getEpisodeNames() {
+        return episodeNames;
+    }
+
+    public void setEpisodeNames(ArrayList<String> episodeNames) {
+        this.episodeNames = episodeNames;
     }
 
     public String getMovieId() { return movieId; }

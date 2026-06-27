@@ -190,6 +190,20 @@ public class HomeFragment extends BaseFragment {
                             playMovie.setCurrentEpisode(1); // Mặc định chạy tập 1, Room sẽ tự động nhảy số tập cũ nếu có lịch sử xem
                             playMovie.setRating(4.5);
 
+                            ArrayList<String> episodeUrls = new ArrayList<>();
+                            ArrayList<String> episodeNames = new ArrayList<>();
+
+                            for(MovieDetailResponse.EpisodeData ep
+                                    : firstServer.getServerData()){
+
+                                episodeUrls.add(ep.getLinkM3u8());
+
+                                episodeNames.add(ep.getName());
+                            }
+
+                            playMovie.setEpisodeUrls(episodeUrls);
+                            playMovie.setEpisodeNames(episodeNames);
+
                             Intent intent = new Intent(requireContext(), VideoPlayerActivity.class);
                             intent.putExtra("movie", playMovie);
                             startActivity(intent);

@@ -63,11 +63,18 @@ public class VideoPlayerActivity extends AppCompatActivity {
         viewModel = new ViewModelProvider(this).get(VideoPlayerViewModel.class);
 
         initViews();
-        setupObservers();
 
-        Movie movie = (Movie) getIntent().getSerializableExtra("movie");
+        Movie movie =
+                (Movie) getIntent().getSerializableExtra("movie");
+
         if (movie != null) {
+
             currentMovie = movie;
+
+            viewModel.loadResumeData(movie.getMovieId());
+
+            setupObservers();
+
             setupPlayer(movie);
         }
     }
@@ -99,6 +106,35 @@ public class VideoPlayerActivity extends AppCompatActivity {
         btnNextEpisode.setOnClickListener(v -> nextEpisode());
         btnPlaylist.setOnClickListener(v -> showPlaylist());
     }
+    private void loadEpisode(int episodeIndex){
+
+        if(currentMovie == null) return;
+
+        if(currentMovie.getEpisodeUrls() == null) return;
+
+        if(episodeIndex < 0
+                || episodeIndex >= currentMovie.getEpisodeUrls().size())
+            return;
+
+        currentEpisode = episodeIndex + 1;
+
+        String url =
+                currentMovie.getEpisodeUrls().get(episodeIndex);
+
+        MediaItem mediaItem =
+                MediaItem.fromUri(url);
+
+        exoPlayer.setMediaItem(mediaItem);
+
+        exoPlayer.prepare();
+
+        exoPlayer.play();
+
+        tvCurrentEpisode.setText("Tập " + currentEpisode);
+
+        Log.d(TAG,
+                "Playing episode " + currentEpisode);
+    }
 
     private void setupObservers() {
         viewModel.getResumeData().observe(this, resumeData -> {
@@ -109,7 +145,14 @@ public class VideoPlayerActivity extends AppCompatActivity {
                 Log.d(TAG, "Loaded saved position: " + savedPosition + "ms, episode: " + currentEpisode);
                 Toast.makeText(this, "Tiếp tục xem từ tập " + currentEpisode, Toast.LENGTH_SHORT).show();
 
-                if (exoPlayer != null) {
+                if (exoPlayer != null && currentMovie != null) {
+
+                    if(currentMovie.getEpisodeUrls() != null
+                            && currentMovie.getEpisodeUrls().size() > 0){
+
+                        loadEpisode(currentEpisode - 1);
+                    }
+
                     exoPlayer.seekTo(savedPosition);
                 }
             }
@@ -129,25 +172,47 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     private void setupPlayer(Movie movie) {
+
         exoPlayer = new ExoPlayer.Builder(this).build();
+
         playerView.setPlayer(exoPlayer);
 
         tvMovieTitle.setText(movie.getTitle());
+
         tvCurrentEpisode.setText("Tập " + currentEpisode);
 
-        MediaItem mediaItem = MediaItem.fromUri(movie.getVideoUrl());
-        exoPlayer.setMediaItem(mediaItem);
-        exoPlayer.prepare();
+        if(movie.getEpisodeUrls() != null
+                && !movie.getEpisodeUrls().isEmpty()) {
 
-        viewModel.loadResumeData(movie.getMovieId());
+            loadEpisode(0);
+
+        } else {
+
+            MediaItem mediaItem =
+                    MediaItem.fromUri(movie.getVideoUrl());
+
+            exoPlayer.setMediaItem(mediaItem);
+
+            exoPlayer.prepare();
+
+            exoPlayer.play();
+        }
 
         exoPlayer.addListener(new com.google.android.exoplayer2.Player.Listener() {
+
             @Override
             public void onPlaybackStateChanged(int playbackState) {
-                if (playbackState == com.google.android.exoplayer2.Player.STATE_READY) {
+
+                if (playbackState ==
+                        com.google.android.exoplayer2.Player.STATE_READY) {
+
                     long duration = exoPlayer.getDuration();
+
                     tvDuration.setText(formatTime(duration));
-                    Log.d(TAG, "Video ready. Duration: " + duration + "ms");
+
+                    Log.d(TAG,
+                            "Video ready. Duration: "
+                                    + duration + "ms");
                 }
             }
         });
@@ -172,8 +237,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     private void saveAndChangeEpisode() {
+
         if (exoPlayer != null && currentMovie != null) {
+
             long currentPos = exoPlayer.getCurrentPosition();
+
             long duration = exoPlayer.getDuration();
 
             viewModel.saveResumeData(
@@ -185,8 +253,11 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     userId
             );
 
-            tvCurrentEpisode.setText("Tập " + currentEpisode);
-            Log.d(TAG, "Changed to episode " + currentEpisode);
+            loadEpisode(currentEpisode - 1);
+
+            Log.d(TAG,
+                    "Changed to episode "
+                            + currentEpisode);
         }
     }
 
