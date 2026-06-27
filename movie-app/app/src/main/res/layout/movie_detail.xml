@@ -445,7 +445,9 @@
                             android:src="@android:drawable/ic_menu_send"
                             android:padding="8dp"
                             app:tint="#E50914"
-                            android:layout_marginStart="8dp"/>
+                            android:layout_marginStart="8dp"
+                            android:clickable="true"
+                            android:focusable="true"/>
                     </LinearLayout>
                 </LinearLayout>
 

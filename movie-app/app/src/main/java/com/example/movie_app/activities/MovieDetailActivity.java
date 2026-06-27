@@ -5,8 +5,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,8 +25,13 @@ import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.models.Category;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
@@ -42,6 +49,11 @@ public class MovieDetailActivity extends AppCompatActivity {
     private LinearLayout btnWatchNow;
     private boolean isNested = false;
     private int activeTabId = -1;
+    private RatingBar ratingBarInput;
+    private EditText edtCommentInput;
+    private ImageView btnSendComment;
+    private DatabaseReference databaseReference;
+    private String currentMovieId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,9 +114,14 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         rvRelatedMovies = findViewById(R.id.rvRelatedMovies);
         rvRelatedMovies.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        ratingBarInput = findViewById(R.id.ratingBarInput);
+        edtCommentInput = findViewById(R.id.edtCommentInput);
+        btnSendComment = findViewById(R.id.btnSendComment);
+        databaseReference = FirebaseDatabase.getInstance().getReference("reviews");
     }
 
     private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {
+        currentMovieId = info.getId();
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
@@ -216,5 +233,38 @@ public class MovieDetailActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
+    }private void setupCommentAction() {
+        btnSendComment.setOnClickListener(v -> {
+
+            String text = edtCommentInput.getText().toString().trim();
+            float stars = ratingBarInput.getRating();
+
+            if (text.isEmpty()) {
+                Toast.makeText(this, "Chưa nhập nội dung kìa!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (currentMovieId == null || currentMovieId.isEmpty()) {
+                Toast.makeText(this, "Lỗi: Không xác định được ID phim.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Map<String, Object> review = new HashMap<>();
+            review.put("movieId", currentMovieId);
+            review.put("username", "Người dùng ẩn danh");
+            review.put("content", text);
+            review.put("rating", stars);
+            review.put("timestamp", ServerValue.TIMESTAMP); // Sử dụng ServerValue của Realtime DB
+            review.put("status", "pending");
+
+            databaseReference.push().setValue(review)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Đã gửi bình luận chờ duyệt!", Toast.LENGTH_SHORT).show();
+                        edtCommentInput.setText("");
+                        ratingBarInput.setRating(5);
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Gửi thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
     }
 }
