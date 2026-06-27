@@ -52,4 +52,44 @@ public interface ApiService {
     @DELETE("/api/v1/resume/{movieId}")
     Call<Void> deleteResumeData(@Path("movieId") String movieId);
 
+    @GET("api/v1/admin/stats/summary")
+    Call<AdminStatsResponse> getAdminStats();
+
+    @GET("api/v1/admin/moderation/stats")
+    Call<ModerationDashboardStats> getModerationStats();
+
+    @GET("api/v1/admin/users/reported")
+    Call<List<AdminUserDto>> getReportedUsers();
+
+    @POST("api/v1/admin/users/{userId}/toggle-lock")
+    Call<Void> toggleUserLock(@Path("userId") String userId, @Query("isLock") boolean isLock);
+
+    @GET("api/v1/admin/comments/violations")
+    Call<List<ViolationCommentDto>> getViolationComments();
+
+    @DELETE("api/v1/admin/comments/{commentId}")
+    Call<Void> deleteComment(@Path("commentId") String commentId);
+
+    @POST("api/v1/admin/comments/{commentId}/ignore")
+    Call<Void> ignoreCommentViolation(@Path("commentId") String commentId);
+
+    @GET("api/v1/admin/safety/dashboard")
+    Call<SafetyDashboardStats> getSafetyDashboardStats();
+
+    @POST("api/v1/admin/safety/toggle-maintenance")
+    Call<Void> toggleMaintenanceMode(@Body MaintenanceRequest request);
+
+    @GET("api/v1/admin/safety/reports")
+    Call<List<ReportedContentDto>> getReportedContents();
+
+    @POST("api/v1/admin/safety/reports/{reportId}/action")
+    Call<Void> processReportAction(@Path("reportId") String reportId, @Query("action") String action);
+
+    @GET("api/v1/admin/safety/logs")
+    Call<List<SystemLogDto>> getSystemLogs();
+    @GET("api/v1/admin/analytics/dashboard")
+    Call<AnalyticsDashboardResponse> getAnalyticsData(@Query("days") int days);
+
+    @GET("api/v1/admin/analytics/export")
+    Call<Void> exportAnalyticsReport(@Query("days") int days);
 }

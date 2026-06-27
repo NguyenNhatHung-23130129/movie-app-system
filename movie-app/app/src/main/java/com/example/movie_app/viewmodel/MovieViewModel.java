@@ -15,6 +15,7 @@ import com.example.movie_app.models.*;
 import com.example.movie_app.repository.HistoryRepository;
 import com.example.movie_app.repository.MovieRepository;
 import com.example.movie_app.utils.RecommendationEngine;
+import com.google.android.gms.tasks.OnCompleteListener;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -38,6 +39,18 @@ public class MovieViewModel extends AndroidViewModel {
     public LiveData<MovieDetailResponse> getMovieDetail(String slug) { return movieRepository.getMovieDetail(slug); }
     public LiveData<List<MovieItem>> searchMovies(String keyword) { return movieRepository.searchMovies(keyword); }
     public LiveData<List<MovieItem>> getMoviesFromFirebase() { return movieRepository.getMoviesFromFirebase(); }
+
+    public void addMovie(MovieItem movie, OnCompleteListener<Void> listener) {
+        movieRepository.addMovie(movie, listener);
+    }
+
+    public void updateMovie(MovieItem movie, OnCompleteListener<Void> listener) {
+        movieRepository.updateMovie(movie, listener);
+    }
+
+    public void deleteMovie(MovieItem movie, OnCompleteListener<Void> listener) {
+        movieRepository.deleteMovie(movie, listener);
+    }
 
     public LiveData<List<MovieItem>> getRelatedMovies(String currentSlug, List<Category> categories) {
         MediatorLiveData<List<MovieItem>> result = new MediatorLiveData<>();
