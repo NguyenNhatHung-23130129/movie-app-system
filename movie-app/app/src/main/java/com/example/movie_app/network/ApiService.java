@@ -52,12 +52,6 @@ public interface ApiService {
     @DELETE("/api/v1/resume/{movieId}")
     Call<Void> deleteResumeData(@Path("movieId") String movieId);
 
-    @POST("api/v1/auth/login")
-    Call<LoginResponse> loginUser(@Body LoginRequest request);
-
-    @POST("api/v1/auth/register")
-    Call<RegisterResponse> registerUser(@Body RegisterRequest request);
-
     @GET("api/v1/admin/stats/summary")
     Call<AdminStatsResponse> getAdminStats();
 
