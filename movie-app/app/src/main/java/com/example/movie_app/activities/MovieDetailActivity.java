@@ -25,12 +25,6 @@ import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
 
 import java.util.List;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FieldValue;
-import android.widget.RatingBar;
-import android.widget.EditText;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
@@ -48,11 +42,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     private LinearLayout btnWatchNow;
     private boolean isNested = false;
     private int activeTabId = -1;
-    private RatingBar ratingBarInput;
-    private EditText edtCommentInput;
-    private ImageView btnSendComment;
-    private FirebaseFirestore db;
-    private String currentMovieId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,14 +102,9 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         rvRelatedMovies = findViewById(R.id.rvRelatedMovies);
         rvRelatedMovies.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        ratingBarInput = findViewById(R.id.ratingBarInput);
-        edtCommentInput = findViewById(R.id.edtCommentInput);
-        btnSendComment = findViewById(R.id.btnSendComment);
-        db = FirebaseFirestore.getInstance();
     }
 
     private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {
-        currentMovieId = info.getId();
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
@@ -232,42 +216,5 @@ public class MovieDetailActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
-    }
-    private void setupCommentAction() {
-        btnSendComment.setOnClickListener(v -> {
-
-            String text = edtCommentInput.getText().toString().trim();
-            float stars = ratingBarInput.getRating();
-
-            if (text.isEmpty()) {
-                Toast.makeText(this, "Chưa nhập nội dung kìa!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (currentMovieId == null || currentMovieId.isEmpty()) {
-                Toast.makeText(this, "Lỗi: Không xác định được ID phim.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Lớp 8: Đóng gói dữ liệu vào một cái hộp (HashMap) để gửi cho bưu điện Firebase
-            Map<String, Object> review = new HashMap<>();
-            review.put("movieId", currentMovieId);
-            review.put("username", "Người dùng ẩn danh");
-            review.put("content", text);
-            review.put("rating", stars);
-            review.put("timestamp", FieldValue.serverTimestamp()); // Tự động lấy giờ hệ thống
-            review.put("status", "pending");
-
-            // Đẩy lên collection "reviews"
-            db.collection("reviews").add(review)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(this, "Đã gửi bình luận chờ duyệt!", Toast.LENGTH_SHORT).show();
-                        edtCommentInput.setText("");
-                        ratingBarInput.setRating(5);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Gửi thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-        });
     }
 }
