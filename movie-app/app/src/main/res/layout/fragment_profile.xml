@@ -36,15 +36,6 @@
                     app:strokeColor="#FF1E27"
                     app:strokeWidth="2dp" />
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_alignEnd="@id/imgAvatar"
-                    android:layout_alignBottom="@id/imgAvatar"
-                    android:layout_marginEnd="2dp"
-                    android:layout_marginBottom="2dp"
-                    android:src="@android:drawable/btn_star_big_on"
-                    app:tint="#FFCC00" />
             </RelativeLayout>
 
             <TextView
@@ -66,20 +57,6 @@
                 android:textColor="#9EA3B0"
                 android:textSize="14sp" />
 
-            <!-- HỘI VIÊN PREMIUM BADGE -->
-            <TextView
-                android:id="@+id/badgePremium"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@android:drawable/toast_frame"
-                android:backgroundTint="#FFCC00"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="5dp"
-                android:text="🎖️ HỘI VIÊN PREMIUM"
-                android:textColor="#000000"
-                android:textSize="11sp"
-                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- STATS LAYOUT (Hàng Thống Kê Chỉ Số) -->
@@ -190,20 +167,22 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Quản lý gói cước -->
+                <!-- Quản lý phần mềm (admin) -->
                 <RelativeLayout
-                    android:id="@+id/btnManagePackage"
+                    android:id="@+id/btnManageSoftware"
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
                     android:background="?attr/selectableItemBackground"
                     android:paddingHorizontal="16dp">
+
                     <ImageView
                         android:id="@+id/ic_package"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_slideshow"
+                        android:src="@drawable/ic_build"
                         app:tint="#FF4D4D" />
+
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -211,19 +190,15 @@
                         android:layout_toEndOf="@id/ic_package"
                         android:layout_marginStart="16dp"
                         android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Quản lý gói cước"
+                            android:text="Quản lý phần mềm (Admin)"
                             android:textColor="#FFFFFF"
                             android:textSize="15sp" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Gói hiện tại: 4K Ultra HD"
-                            android:textColor="#FFB4AA"
-                            android:textSize="12sp" />
                     </LinearLayout>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -235,7 +210,7 @@
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C313C"/>
 
-                <!-- Danh sách của tôi (Thay thế mục Phim yêu thích) -->
+                <!-- Danh sách của tôi  -->
                 <RelativeLayout
                     android:id="@+id/btnFavoriteMovies"
                     android:layout_width="match_parent"
@@ -268,39 +243,6 @@
                 </RelativeLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C313C"/>
-
-                <!-- Lịch sử giao dịch (Thay thế mục Đổi mật khẩu) -->
-                <RelativeLayout
-                    android:id="@+id/btnChangePassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="16dp">
-                    <ImageView
-                        android:id="@+id/ic_history"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_today"
-                        app:tint="#9EA3B0" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/ic_history"
-                        android:layout_marginStart="16dp"
-                        android:text="Lịch sử giao dịch"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:text="❯"
-                        android:textColor="#5A6175" />
-                </RelativeLayout>
-
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -322,7 +264,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Cài đặt (Thay thế mục Cài đặt thông báo cũ) -->
+                <!-- Cài đặt  -->
                 <RelativeLayout
                     android:id="@+id/btnNotificationSettings"
                     android:layout_width="match_parent"
@@ -356,7 +298,7 @@
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C313C"/>
 
-                <!-- Trợ giúp & Hỗ trợ (Nút mới ánh xạ vào ID Chỉnh sửa hồ sơ cũ) -->
+                <!-- Trợ giúp & Hỗ trợ  -->
                 <RelativeLayout
                     android:id="@+id/btnEditProfile"
                     android:layout_width="match_parent"
@@ -440,6 +382,7 @@
             android:text="MovieFlow v2.4.0 • Made with ❤️"
             android:textColor="#4E5566"
             android:textSize="12sp"
+            android:layout_margin="15dp"
             app:layout_constraintTop_toBottomOf="@id/cardLogout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
