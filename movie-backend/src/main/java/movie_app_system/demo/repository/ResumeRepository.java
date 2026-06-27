@@ -83,7 +83,7 @@ public class ResumeRepository {
                     document.getString("movieTitle"),
                     document.getLong("currentPosition") != null ? document.getLong("currentPosition") : 0,
                     document.getLong("duration") != null ? document.getLong("duration") : 0,
-                    document.getLong("currentEpisode") != null document.getLong("currentEpisode").intValue() : 1,
+                    document.getLong("currentEpisode") != null ? document.getLong("currentEpisode").intValue() : 1,
                     document.getString("userId"),
                     document.getString("lastWatchedTime"),
                     "Resume data loaded successfully",
