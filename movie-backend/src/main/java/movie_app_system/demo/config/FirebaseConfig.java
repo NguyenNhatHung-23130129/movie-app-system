@@ -5,6 +5,7 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.cloud.FirestoreClient; // 1. THÊM IMPORT NÀY
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -41,5 +42,10 @@ public class FirebaseConfig {
     @Bean
     public FirebaseDatabase firebaseDatabase() {
         return FirebaseDatabase.getInstance("https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app/");
+    }
+
+    @Bean
+    public Firestore firestore() {
+        return FirestoreClient.getFirestore();
     }
 }
