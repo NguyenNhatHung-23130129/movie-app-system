@@ -46,8 +46,12 @@ dependencies {
     implementation("androidx.room:room-ktx:2.5.1")
     annotationProcessor("androidx.room:room-compiler:2.5.1")
 
+    implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
+
 // LiveData for Room
     implementation("androidx.lifecycle:lifecycle-livedata:2.6.1")
+
+    implementation("com.google.firebase:firebase-messaging:24.1.0")
 
     implementation(libs.appcompat)
     implementation(libs.material)

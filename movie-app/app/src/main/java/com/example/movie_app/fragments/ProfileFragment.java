@@ -24,7 +24,7 @@ public class ProfileFragment extends Fragment {
 
         // Ánh xạ các nút bấm từ XML
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
-        btnChangePassword = view.findViewById(R.id.btnChangePassword);
+      //  btnChangePassword = view.findViewById(R.id.btnChangePassword);
         btnFavoriteMovies = view.findViewById(R.id.btnFavoriteMovies);
         btnNotificationSettings = view.findViewById(R.id.btnNotificationSettings);
         btnLogout = view.findViewById(R.id.btnLogout);

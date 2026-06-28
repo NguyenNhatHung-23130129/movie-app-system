@@ -56,10 +56,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
-<<<<<<< HEAD
+
             android:name=".activities.VideoPlayerActivity"
             android:exported="false"/>
-=======
+        <activity
             android:name=".activities.LoginActivity" />
         <activity
             android:name=".activities.RegisterActivity" />
@@ -72,7 +72,6 @@
             </intent-filter>
         </service>
 
->>>>>>> 66ebe0db9944785783cd46b3906243dee3116fb7
     </application>
 
 </manifest>

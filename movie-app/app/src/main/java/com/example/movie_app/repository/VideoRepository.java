@@ -14,7 +14,7 @@ public class VideoRepository {
     private ResumeDao resumeDao;
 
     public VideoRepository(Context context) {
-        AppDatabase database = AppDatabase.getInstance(context);
+        AppDatabase database = AppDatabase.getDatabase(context);
         this.resumeDao = database.resumeDao();
     }
 

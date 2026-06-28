@@ -8,20 +8,21 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
+import androidx.media3.common.C;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 import com.example.movie_app.R;
 import com.example.movie_app.models.Movie;
 import com.example.movie_app.viewmodel.VideoPlayerViewModel;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class VideoPlayerActivity extends AppCompatActivity {
     private static final String TAG = "VideoPlayerActivity";
 
-    private StyledPlayerView playerView;
+    private PlayerView playerView;
     private ExoPlayer exoPlayer;
     private VideoPlayerViewModel viewModel;
 
@@ -35,7 +36,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private Movie currentMovie;
     private String userId;
     private int currentEpisode = 1;
-    private long savedPosition = 0;
+
+    // FIX 1: Dùng pendingSeekPosition thay vì seekTo() trực tiếp sau prepare()
+    private long pendingSeekPosition = 0;
 
     private FirebaseAuth firebaseAuth;
 
@@ -44,41 +47,38 @@ public class VideoPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_player);
 
-        viewModel = new ViewModelProvider(this,
-                new ViewModelProvider.AndroidViewModelFactory(this.getApplication()))
-                .get(VideoPlayerViewModel.class);
-
-
         firebaseAuth = FirebaseAuth.getInstance();
 
-
         userId = getUserIdFromFirebase();
-
         if (userId == null) {
-            Toast.makeText(this, "Bạn chưa đăng nhập!", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+            Log.d(TAG, "Development Mode - Fake User");
+            userId = "TEST_USER";
         }
 
         viewModel = new ViewModelProvider(this).get(VideoPlayerViewModel.class);
 
         initViews();
 
-        Movie movie =
-                (Movie) getIntent().getSerializableExtra("movie");
+        Movie movie = (Movie) getIntent().getSerializableExtra("movie");
 
         if (movie != null) {
-
             currentMovie = movie;
 
-            viewModel.loadResumeData(movie.getMovieId());
+            exoPlayer = new ExoPlayer.Builder(this).build();
+            playerView.setPlayer(exoPlayer);
+            tvMovieTitle.setText(movie.getTitle());
+            tvCurrentEpisode.setText("Tập " + currentEpisode);
 
+            // FIX 1: setupPlayerListener phải được gọi TRƯỚC setupObservers
+            // để listener sẵn sàng bắt STATE_READY khi video load
+            setupPlayerListener();
             setupObservers();
-
-            setupPlayer(movie);
+            viewModel.loadResumeData(movie.getMovieId());
+        } else {
+            Toast.makeText(this, "Không tìm thấy thông tin phim!", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
-
 
     private String getUserIdFromFirebase() {
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
@@ -101,66 +101,70 @@ public class VideoPlayerActivity extends AppCompatActivity {
         btnNextEpisode = findViewById(R.id.btn_next_episode);
         btnPlaylist = findViewById(R.id.btn_playlist);
 
-
         btnPrevEpisode.setOnClickListener(v -> previousEpisode());
         btnNextEpisode.setOnClickListener(v -> nextEpisode());
         btnPlaylist.setOnClickListener(v -> showPlaylist());
     }
-    private void loadEpisode(int episodeIndex){
 
-        if(currentMovie == null) return;
-
-        if(currentMovie.getEpisodeUrls() == null) return;
-
-        if(episodeIndex < 0
-                || episodeIndex >= currentMovie.getEpisodeUrls().size())
+    private void loadEpisode(int episodeIndex) {
+        if (currentMovie == null) return;
+        if (currentMovie.getEpisodeUrls() == null || currentMovie.getEpisodeUrls().isEmpty()) {
+            Toast.makeText(this, "Không có danh sách tập phim!", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        if (episodeIndex < 0 || episodeIndex >= currentMovie.getEpisodeUrls().size()) return;
 
         currentEpisode = episodeIndex + 1;
+        String url = currentMovie.getEpisodeUrls().get(episodeIndex);
 
-        String url =
-                currentMovie.getEpisodeUrls().get(episodeIndex);
+        if (url == null || url.trim().isEmpty()) {
+            Log.e(TAG, "Đường dẫn video tập " + currentEpisode + " bị NULL!");
+            Toast.makeText(this, "Tập phim này lỗi đường dẫn, không thể phát!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        MediaItem mediaItem =
-                MediaItem.fromUri(url);
-
-        exoPlayer.setMediaItem(mediaItem);
-
-        exoPlayer.prepare();
-
-        exoPlayer.play();
-
-        tvCurrentEpisode.setText("Tập " + currentEpisode);
-
-        Log.d(TAG,
-                "Playing episode " + currentEpisode);
+        try {
+            MediaItem mediaItem = MediaItem.fromUri(url);
+            exoPlayer.setMediaItem(mediaItem);
+            exoPlayer.prepare();
+            // FIX 1: KHÔNG gọi exoPlayer.play() ở đây
+            // play() sẽ được gọi trong listener sau khi STATE_READY
+            tvCurrentEpisode.setText("Tập " + currentEpisode);
+            Log.d(TAG, "Loading episode " + currentEpisode + " với URL: " + url);
+        } catch (Exception e) {
+            Log.e(TAG, "Lỗi khi nạp MediaItem: " + e.getMessage());
+            Toast.makeText(this, "Định dạng video không hỗ trợ!", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupObservers() {
         viewModel.getResumeData().observe(this, resumeData -> {
             if (resumeData != null && resumeData.getCurrentPosition() > 0) {
-                savedPosition = resumeData.getCurrentPosition();
+                // FIX 1: Lưu vị trí cần seek vào biến, KHÔNG seekTo ngay
+                pendingSeekPosition = resumeData.getCurrentPosition();
                 currentEpisode = resumeData.getCurrentEpisode();
 
-                Log.d(TAG, "Loaded saved position: " + savedPosition + "ms, episode: " + currentEpisode);
+                Log.d(TAG, "Loaded saved position: " + pendingSeekPosition + "ms, episode: " + currentEpisode);
                 Toast.makeText(this, "Tiếp tục xem từ tập " + currentEpisode, Toast.LENGTH_SHORT).show();
 
-                if (exoPlayer != null && currentMovie != null) {
-
-                    if(currentMovie.getEpisodeUrls() != null
-                            && currentMovie.getEpisodeUrls().size() > 0){
-
-                        loadEpisode(currentEpisode - 1);
-                    }
-
-                    exoPlayer.seekTo(savedPosition);
+                if (currentMovie.getEpisodeUrls() != null && !currentMovie.getEpisodeUrls().isEmpty()) {
+                    loadEpisode(currentEpisode - 1);
+                    // KHÔNG gọi exoPlayer.seekTo() ở đây!
+                    // Việc seek sẽ được thực hiện trong setupPlayerListener() khi STATE_READY
                 }
-            }
-        });
-
-        viewModel.getIsLoading().observe(this, isLoading -> {
-            if (isLoading) {
-                playerView.setShutterBackgroundColor(0x66000000);
+            } else {
+                pendingSeekPosition = 0;
+                if (currentMovie.getEpisodeUrls() != null && !currentMovie.getEpisodeUrls().isEmpty()) {
+                    loadEpisode(0);
+                } else if (currentMovie.getVideoUrl() != null && !currentMovie.getVideoUrl().isEmpty()) {
+                    MediaItem mediaItem = MediaItem.fromUri(currentMovie.getVideoUrl());
+                    exoPlayer.setMediaItem(mediaItem);
+                    exoPlayer.prepare();
+                } else {
+                    Toast.makeText(this, "Không tìm thấy đường dẫn video!", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             }
         });
 
@@ -171,49 +175,39 @@ public class VideoPlayerActivity extends AppCompatActivity {
         });
     }
 
-    private void setupPlayer(Movie movie) {
-
-        exoPlayer = new ExoPlayer.Builder(this).build();
-
-        playerView.setPlayer(exoPlayer);
-
-        tvMovieTitle.setText(movie.getTitle());
-
-        tvCurrentEpisode.setText("Tập " + currentEpisode);
-
-        if(movie.getEpisodeUrls() != null
-                && !movie.getEpisodeUrls().isEmpty()) {
-
-            loadEpisode(0);
-
-        } else {
-
-            MediaItem mediaItem =
-                    MediaItem.fromUri(movie.getVideoUrl());
-
-            exoPlayer.setMediaItem(mediaItem);
-
-            exoPlayer.prepare();
-
-            exoPlayer.play();
-        }
-
-        exoPlayer.addListener(new com.google.android.exoplayer2.Player.Listener() {
-
+    private void setupPlayerListener() {
+        if (exoPlayer == null) return;
+        exoPlayer.addListener(new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int playbackState) {
-
-                if (playbackState ==
-                        com.google.android.exoplayer2.Player.STATE_READY) {
-
+                if (playbackState == Player.STATE_READY) {
                     long duration = exoPlayer.getDuration();
-
                     tvDuration.setText(formatTime(duration));
+                    Log.d(TAG, "Video ready. Duration: " + duration + "ms");
 
-                    Log.d(TAG,
-                            "Video ready. Duration: "
-                                    + duration + "ms");
+                    // FIX 1: Seek đến vị trí đã lưu SAU KHI video sẵn sàng
+                    if (pendingSeekPosition > 0) {
+                        exoPlayer.seekTo(pendingSeekPosition);
+                        pendingSeekPosition = 0; // Reset sau khi đã seek
+                        Log.d(TAG, "Seeked to saved position successfully.");
+                    }
+
+                    // Tự động play sau khi video sẵn sàng (và đã seek nếu cần)
+                    if (!exoPlayer.isPlaying()) {
+                        exoPlayer.play();
+                    }
                 }
+
+                if (playbackState == Player.STATE_ENDED) {
+                    Log.d(TAG, "Episode ended.");
+                }
+            }
+
+            @Override
+            public void onPlayerError(androidx.media3.common.PlaybackException error) {
+                Log.e(TAG, "Player error: " + error.getMessage());
+                Toast.makeText(VideoPlayerActivity.this,
+                        "Lỗi phát video: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -237,11 +231,8 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     private void saveAndChangeEpisode() {
-
         if (exoPlayer != null && currentMovie != null) {
-
             long currentPos = exoPlayer.getCurrentPosition();
-
             long duration = exoPlayer.getDuration();
 
             viewModel.saveResumeData(
@@ -253,11 +244,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     userId
             );
 
+            // Reset pendingSeek khi chuyển tập chủ động (không cần seek tới vị trí cũ)
+            pendingSeekPosition = 0;
             loadEpisode(currentEpisode - 1);
-
-            Log.d(TAG,
-                    "Changed to episode "
-                            + currentEpisode);
+            Log.d(TAG, "Changed to episode " + currentEpisode);
         }
     }
 
@@ -266,7 +256,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
     }
 
     private String formatTime(long timeMs) {
-        if (timeMs == com.google.android.exoplayer2.C.TIME_UNSET) {
+        if (timeMs == C.TIME_UNSET) {
             return "00:00";
         }
         long seconds = timeMs / 1000;
@@ -278,11 +268,9 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
         if (exoPlayer != null && currentMovie != null) {
             long currentPos = exoPlayer.getCurrentPosition();
             long duration = exoPlayer.getDuration();
-
             Log.d(TAG, "Saving position on pause: " + currentPos + "ms");
 
             viewModel.saveResumeData(
@@ -301,8 +289,10 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-        if (exoPlayer != null) {
+        // FIX 2: Chỉ play nếu player đang ở trạng thái sẵn sàng và chưa play
+        if (exoPlayer != null
+                && exoPlayer.getPlaybackState() == Player.STATE_READY
+                && !exoPlayer.isPlaying()) {
             exoPlayer.play();
         }
     }
@@ -310,7 +300,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         if (exoPlayer != null && currentMovie != null) {
             long currentPos = exoPlayer.getCurrentPosition();
             long duration = exoPlayer.getDuration();
