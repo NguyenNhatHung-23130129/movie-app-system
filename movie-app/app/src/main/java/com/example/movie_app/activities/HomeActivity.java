@@ -164,7 +164,7 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(homeFragment, R.id.tabHome);
             } else if (targetTabId == R.id.tabExplore) {
                 loadFragment(exploreFragment, R.id.tabExplore);
-            } else if (targetTabId == R.id.tabProfile) { // 4. Điều hướng từ Intent ngoài vào tab Profile
+            } else if (targetTabId == R.id.tabProfile) {
                 loadFragment(profileFragment, R.id.tabProfile);
             }
         }

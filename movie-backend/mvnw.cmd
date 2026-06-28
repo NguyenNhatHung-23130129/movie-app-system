@@ -46,7 +46,6 @@
 : end batch / begin powershell #>
 
 $ErrorActionPreference = "Stop"
-$env:JAVA_TOOL_OPTIONS=$null  # <--- THÊM DÒNG NÀY ĐỂ TRIỆT TIÊU BIẾN ĐỘC HẠI
 if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
 }

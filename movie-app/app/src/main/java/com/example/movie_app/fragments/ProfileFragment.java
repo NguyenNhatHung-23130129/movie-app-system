@@ -17,7 +17,6 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
 
 import com.example.movie_app.R;
-import com.example.movie_app.activities.HomeActivity;
 import com.example.movie_app.activities.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -105,12 +104,24 @@ public class ProfileFragment extends Fragment {
         if (btnFavoriteMovies != null) {
             btnFavoriteMovies.setOnClickListener(v -> Toast.makeText(getContext(), "Mở Danh sách của tôi", Toast.LENGTH_SHORT).show());
         }
-        if (btnNotificationSettings != null) {
-            btnNotificationSettings.setOnClickListener(v -> Toast.makeText(getContext(), "Mở Cài đặt hệ thống", Toast.LENGTH_SHORT).show());
-        }
-        if (btnEditProfile != null) {
-            btnEditProfile.setOnClickListener(v -> Toast.makeText(getContext(), "Mở mục Trợ giúp & Hỗ trợ", Toast.LENGTH_SHORT).show());
-        }
+        btnNotificationSettings.setOnClickListener(v -> {
+            SettingsFragment settingsFragment = new SettingsFragment();
+
+            getParentFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, settingsFragment)
+                    .hide(this)
+                    .addToBackStack("SETTINGS_FRAGMENT")
+                    .commit();
+        });
+
+        btnEditProfile.setOnClickListener(v -> {
+            HelpSupportFragment helpFragment = new HelpSupportFragment();
+            getParentFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, helpFragment)
+                    .hide(this)
+                    .addToBackStack("HELP_FRAGMENT")
+                    .commit();
+        });
 
         // XỬ LÝ ĐĂNG XUẤT
         if (btnLogout != null) {
