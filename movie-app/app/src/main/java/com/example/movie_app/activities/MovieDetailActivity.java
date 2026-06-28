@@ -106,6 +106,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         tvDetailActor = findViewById(R.id.tvDetailActor);
         tvDetailCountry = findViewById(R.id.tvDetailCountry);
         tvDetailStatus = findViewById(R.id.tvDetailStatus);
+        btnAddToMyList = findViewById(R.id.btnAddToMyList);
+        imgAddToMyList = findViewById(R.id.imgAddToMyList);
 
         tabDescription = findViewById(R.id.tabDescription);
         tabComments = findViewById(R.id.tabComments);
