@@ -5,6 +5,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import com.example.movie_app.dao.FavoriteDao;
 import com.example.movie_app.dao.HistoryDao;
 import com.example.movie_app.dao.MovieDao; // Import DAO mới
 import com.example.movie_app.entity.UserEntity;
@@ -18,6 +19,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract HistoryDao historyDao();
     public abstract MovieDao movieDao();
+    public abstract FavoriteDao favoriteDao();
 
     private static volatile AppDatabase INSTANCE;
 

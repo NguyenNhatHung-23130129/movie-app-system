@@ -114,9 +114,6 @@ public class HomeActivity extends AppCompatActivity {
             ImageView btnSearch = headerBar.findViewById(R.id.btnSearch);
             btnSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         }
-
-        Button btnGoToLogin = findViewById(R.id.btnGoToLogin);
-        btnGoToLogin.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
     }
 
     private void initNavigation() {
