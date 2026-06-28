@@ -7,20 +7,24 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 
+import com.example.movie_app.dao.FavoriteDao;
 import com.example.movie_app.dao.HistoryDao;
 import com.example.movie_app.dao.MovieDao; // Import DAO mới
+import com.example.movie_app.entity.FavoriteEntity;
 import com.example.movie_app.entity.UserEntity;
 import com.example.movie_app.entity.WatchHistoryEntity;
 import com.example.movie_app.models.MovieItem; // Import Model
 import com.example.movie_app.models.ResumeData;
 
-@Database(entities = {UserEntity.class, WatchHistoryEntity.class, MovieItem.class, ResumeData.class},
+
+@Database(entities = {UserEntity.class, WatchHistoryEntity.class, MovieItem.class, ResumeData.class,FavoriteEntity.class},
         version = 1,
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract HistoryDao historyDao();
     public abstract MovieDao movieDao();
+    public abstract FavoriteDao favoriteDao();
 
     public abstract ResumeDao resumeDao();
 

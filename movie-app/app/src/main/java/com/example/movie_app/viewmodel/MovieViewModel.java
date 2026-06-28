@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.movie_app.entity.FavoriteEntity;
 import com.example.movie_app.entity.WatchHistoryEntity;
 import com.example.movie_app.models.*;
 import com.example.movie_app.repository.HistoryRepository;
@@ -38,7 +39,10 @@ public class MovieViewModel extends AndroidViewModel {
     public LiveData<List<Category>> getGenres() { return movieRepository.getGenres(); }
     public LiveData<MovieDetailResponse> getMovieDetail(String slug) { return movieRepository.getMovieDetail(slug); }
     public LiveData<List<MovieItem>> searchMovies(String keyword) { return movieRepository.searchMovies(keyword); }
-    public LiveData<List<MovieItem>> getMoviesFromFirebase() { return movieRepository.getMoviesFromFirebase(); }
+    public LiveData<List<MovieItem>> getMoviesFromFirebase() {
+        LiveData<List<MovieItem>> data = movieRepository.getMoviesFromFirebase();
+        return data;
+    }
 
     public void addMovie(MovieItem movie, OnCompleteListener<Void> listener) {
         movieRepository.addMovie(movie, listener);
@@ -106,5 +110,23 @@ public class MovieViewModel extends AndroidViewModel {
 
     public void refreshData() {
         movieRepository.syncDataFromFirebase();
+    }
+    public LiveData<Boolean> isFavorite(String userId, String movieId) {
+        return movieRepository.isFavorite(userId, movieId);
+    }
+
+    public void addToFavorites(String userId, MovieDetailResponse.MovieDetail info, String finalImageUrl) {
+        FavoriteEntity fav = new FavoriteEntity(
+                userId,
+                info.getId(),
+                info.getName(),
+                finalImageUrl,
+                System.currentTimeMillis()
+        );
+        movieRepository.addFavorite(fav);
+    }
+
+    public void removeFromFavorites(String userId, String movieId) {
+        movieRepository.removeFavorite(userId, movieId);
     }
 }
