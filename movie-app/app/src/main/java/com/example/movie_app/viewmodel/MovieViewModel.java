@@ -39,7 +39,10 @@ public class MovieViewModel extends AndroidViewModel {
     public LiveData<List<Category>> getGenres() { return movieRepository.getGenres(); }
     public LiveData<MovieDetailResponse> getMovieDetail(String slug) { return movieRepository.getMovieDetail(slug); }
     public LiveData<List<MovieItem>> searchMovies(String keyword) { return movieRepository.searchMovies(keyword); }
-    public LiveData<List<MovieItem>> getMoviesFromFirebase() { return movieRepository.getMoviesFromFirebase(); }
+    public LiveData<List<MovieItem>> getMoviesFromFirebase() {
+        LiveData<List<MovieItem>> data = movieRepository.getMoviesFromFirebase();
+        return data;
+    }
 
     public void addMovie(MovieItem movie, OnCompleteListener<Void> listener) {
         movieRepository.addMovie(movie, listener);

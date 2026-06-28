@@ -57,6 +57,7 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.firebase:firebase-database")
+    implementation(libs.firebase.messaging)
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))

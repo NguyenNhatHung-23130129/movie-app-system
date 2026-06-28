@@ -161,31 +161,29 @@ public class HomeFragment extends BaseFragment {
                     setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
                 }
             });
-        } else {
-            Log.e("HOME_FRAGMENT", "Repository trả về null cho genres");
         }
     }
 
     private void loadDataFromFirebase() {
-        movieViewModel.getMoviesByPath("by_type", "series", "series")
-                .observe(getViewLifecycleOwner(), list -> {
-                    if (list != null) seriesAdapter.setMovieList(list);
-                });
+        movieViewModel.getMoviesByPath("by_type", "series", "series").observe(getViewLifecycleOwner(), list -> {
+            if (list != null) seriesAdapter.setMovieList(list);
+        });
 
-        movieViewModel.getMoviesByPath("by_type", "single", "single")
-                .observe(getViewLifecycleOwner(), list -> {
-                    if (list != null) singleMoviesAdapter.setMovieList(list);
-                });
+        movieViewModel.getMoviesByPath("by_type", "single", "single").observe(getViewLifecycleOwner(), list -> {
+            if (list != null) singleMoviesAdapter.setMovieList(list);
+        });
 
         movieViewModel.getMoviesFromFirebase().observe(getViewLifecycleOwner(), movieList -> {
-            if (movieList != null && !movieList.isEmpty()) {
-                if (swipeRefreshLayout.isRefreshing()) {
-                    swipeRefreshLayout.setRefreshing(false);
-                }
+            if (movieList == null || movieList.isEmpty()) {
+                movieViewModel.refreshData();
+            } else {
+                newMoviesAdapter.setMovieList(movieList);
+                newMoviesAdapter.notifyDataSetChanged();
 
-                if (movieList != null && !movieList.isEmpty()) {
-                    newMoviesAdapter.setMovieList(movieList);
-                    continueWatchingAdapter.setMovieList(movieList);
+                continueWatchingAdapter.setMovieList(movieList);
+                continueWatchingAdapter.notifyDataSetChanged();
+
+                if (!movieList.isEmpty()) {
                     updateHeroSection(movieList.get(0));
                 }
             }

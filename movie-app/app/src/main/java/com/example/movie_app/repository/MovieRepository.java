@@ -25,7 +25,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MovieRepository {
-    private static final String TAG = "MOVIE_REPO_DEBUG";
     private final ApiService apiService;
     private final MovieDao movieDao;
     private FavoriteDao favoriteDao;
@@ -35,6 +34,7 @@ public class MovieRepository {
         this.apiService = RetrofitClient.getClient().create(ApiService.class);
         AppDatabase db = AppDatabase.getDatabase(application);
         this.movieDao = db.movieDao();
+        this.favoriteDao = db.favoriteDao();
     }
 
     public LiveData<List<MovieItem>> getMoviesFromFirebase() {
@@ -61,15 +61,11 @@ public class MovieRepository {
                             if (!list.isEmpty()) {
                                 movieDao.deleteAll();
                                 movieDao.insertAll(list);
-                                Log.d(TAG, "Đã đồng bộ " + list.size() + " phim vào Room.");
-                            } else {
-                                Log.w(TAG, "Không tìm thấy phim nào trên Firebase.");
                             }
                         }).start();
                     }
 
                     @Override public void onCancelled(@NonNull DatabaseError error) {
-                        Log.e(TAG, "Lỗi sync Firebase: " + error.getMessage());
                     }
                 });
     }
