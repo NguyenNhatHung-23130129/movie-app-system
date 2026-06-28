@@ -42,6 +42,17 @@ android {
 }
 
 dependencies {
+    implementation("androidx.room:room-runtime:2.5.1")
+    implementation("androidx.room:room-ktx:2.5.1")
+    annotationProcessor("androidx.room:room-compiler:2.5.1")
+
+    implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
+
+// LiveData for Room
+    implementation("androidx.lifecycle:lifecycle-livedata:2.6.1")
+
+    implementation("com.google.firebase:firebase-messaging:24.1.0")
+
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -57,7 +68,7 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.firebase:firebase-database")
-    implementation(libs.firebase.messaging)
+    implementation("com.google.firebase:firebase-messaging")
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
@@ -90,4 +101,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+
 }
