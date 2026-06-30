@@ -63,6 +63,9 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     private boolean isFavorite = false;
     private String currentUserId = "USER_ID_TEST";
+    private RecyclerView rvComments;
+    private com.example.movie_app.adapter.CommentAdapter commentAdapter;
+    private List<com.example.movie_app.models.Comment> commentList;
 
 
     @Override
@@ -94,6 +97,18 @@ public class MovieDetailActivity extends AppCompatActivity {
                 }
             });
         }
+        edtCommentInput.setOnEditorActionListener((v, actionId, event) -> {
+            // Bắt bao quát sự kiện SEND, DONE, hoặc phím Enter vật lý
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEND ||
+                    actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE ||
+                    actionId == android.view.inputmethod.EditorInfo.IME_ACTION_UNSPECIFIED ||
+                    (event != null && event.getKeyCode() == android.view.KeyEvent.KEYCODE_ENTER && event.getAction() == android.view.KeyEvent.ACTION_DOWN)) {
+
+                btnSendComment.performClick();
+                return true;
+            }
+            return false;
+        });
     }
 
     private void initViews() {
@@ -130,12 +145,19 @@ public class MovieDetailActivity extends AppCompatActivity {
         edtCommentInput = findViewById(R.id.edtCommentInput);
         btnSendComment = findViewById(R.id.btnSendComment);
         databaseReference = FirebaseDatabase.getInstance().getReference("reviews");
+        rvComments = findViewById(R.id.rvComments);
+        rvComments.setLayoutManager(new LinearLayoutManager(this));
+
+        commentList = new ArrayList<>();
+        commentAdapter = new com.example.movie_app.adapter.CommentAdapter(commentList);
+        rvComments.setAdapter(commentAdapter);
     }
 
 
     private void bindMovieData(MovieDetailResponse response, String imageUrlFromIntent) {
         MovieDetailResponse.MovieDetail info = response.getMovie();
         currentMovieId = info.getId();
+        loadComments(currentMovieId);
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
@@ -284,7 +306,6 @@ public class MovieDetailActivity extends AppCompatActivity {
         finish();
     }private void setupCommentAction() {
         btnSendComment.setOnClickListener(v -> {
-
             String text = edtCommentInput.getText().toString().trim();
             float stars = ratingBarInput.getRating();
 
@@ -293,23 +314,27 @@ public class MovieDetailActivity extends AppCompatActivity {
                 return;
             }
 
-            if (currentMovieId == null || currentMovieId.isEmpty()) {
-                Toast.makeText(this, "Lỗi: Không xác định được ID phim.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            // 1. Phản hồi UI ngay lập tức (Optimistic Update)
+            edtCommentInput.setText(""); // Xóa nội dung ngay
+            edtCommentInput.clearFocus();
+
+            // Đóng bàn phím chuẩn xác nhất
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+            // 2. Tiến hành gửi lên Firebase
             Map<String, Object> review = new HashMap<>();
             review.put("movieId", currentMovieId);
             review.put("username", "Người dùng ẩn danh");
             review.put("content", text);
             review.put("rating", stars);
-            review.put("timestamp", ServerValue.TIMESTAMP); // Sử dụng ServerValue của Realtime DB
+            review.put("timestamp", com.google.firebase.database.ServerValue.TIMESTAMP);
             review.put("status", "pending");
 
             databaseReference.push().setValue(review)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Đã gửi bình luận chờ duyệt!", Toast.LENGTH_SHORT).show();
-                        edtCommentInput.setText("");
-                        ratingBarInput.setRating(5);
+                        Toast.makeText(this, "Đã gửi bình luận!", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
                         Toast.makeText(this, "Gửi thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -353,5 +378,40 @@ public class MovieDetailActivity extends AppCompatActivity {
             imgAddToMyList.setImageResource(R.drawable.ic_add);
             imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8")); // Màu xám gốc
         }
+    }
+    private void loadComments(String movieId) {
+        // Lọc trong nhánh "reviews", chỉ lấy những bình luận thuộc về movieId hiện tại
+        databaseReference.orderByChild("movieId").equalTo(movieId)
+                .addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                        commentList.clear(); // Xóa list cũ trước khi nạp list mới
+
+                        for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                            // Đọc dữ liệu thô từ Firebase một cách an toàn
+                            String user = data.child("username").getValue(String.class);
+                            String content = data.child("content").getValue(String.class);
+                            Float rating = data.child("rating").getValue(Float.class);
+
+                            // Ép vào model Comment để đưa lên giao diện
+                            com.example.movie_app.models.Comment comment = new com.example.movie_app.models.Comment(
+                                    data.getKey(),
+                                    user != null ? user : "Ẩn danh",
+                                    "", // Avatar bỏ qua
+                                    content != null ? content : "",
+                                    "Vừa xong",
+                                    rating != null ? rating : 5f
+                            );
+                            commentList.add(comment);
+                        }
+                        // Báo cho Adapter biết dữ liệu đã thay đổi để vẽ lại màn hình
+                        commentAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
+                        Toast.makeText(MovieDetailActivity.this, "Lỗi tải bình luận!", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
