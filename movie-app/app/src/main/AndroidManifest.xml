@@ -36,6 +36,7 @@
         <activity android:name=".activities.VideoPlayerActivity" android:exported="false" />
         <activity android:name=".activities.LoginActivity" android:exported="false" />
         <activity android:name=".activities.RegisterActivity" android:exported="false" />
+        <activity android:name=".activities.HistoryActivity" android:exported="false"  />
 
         <service
             android:name=".network.MyFirebaseMessagingService"
