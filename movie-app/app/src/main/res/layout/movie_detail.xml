@@ -437,7 +437,8 @@
                             android:textColorHint="#8E8E93"
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
-                            android:inputType="text"/>
+                            android:inputType="text"
+                            android:imeOptions="actionSend"/>
 
                         <ImageView
                             android:id="@+id/btnSendComment"
