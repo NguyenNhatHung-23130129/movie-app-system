@@ -106,10 +106,7 @@ public class ProfileFragment extends Fragment {
         if (btnManageSoftware != null) {
             btnManageSoftware.setOnClickListener(v -> Toast.makeText(getContext(), "Mở mục Quản lý phần mềm (Admin)", Toast.LENGTH_SHORT).show());
         }
-        btnFavoriteMovies.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), HistoryActivity.class);
-            startActivity(intent);
-        });
+
         btnNotificationSettings.setOnClickListener(v -> {
             SettingsFragment settingsFragment = new SettingsFragment();
 
