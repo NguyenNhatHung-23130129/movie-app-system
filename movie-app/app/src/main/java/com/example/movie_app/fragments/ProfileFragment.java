@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.DashboardAnalyticsActivity;
+import com.example.movie_app.activities.HistoryActivity;
 import com.example.movie_app.activities.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -77,6 +78,9 @@ public class ProfileFragment extends Fragment {
         ImageView imgAvatar = view.findViewById(R.id.imgAvatar);
         RelativeLayout btnLogout = view.findViewById(R.id.btnLogout);
         RelativeLayout btnManageSoftware = view.findViewById(R.id.btnManageSoftware);
+        RelativeLayout btnFavoriteMovies = view.findViewById(R.id.btnFavoriteMovies);
+        RelativeLayout btnNotificationSettings = view.findViewById(R.id.btnNotificationSettings);
+        RelativeLayout btnEditProfile = view.findViewById(R.id.btnEditProfile);
 
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
         String name = prefs.getString("USER_NAME", "Thành viên");
@@ -96,8 +100,35 @@ public class ProfileFragment extends Fragment {
             }
         }
 
+
         if (tvUserName != null) tvUserName.setText(name);
         if (tvUserEmail != null) tvUserEmail.setText(email);
+        if (btnManageSoftware != null) {
+            btnManageSoftware.setOnClickListener(v -> Toast.makeText(getContext(), "Mở mục Quản lý phần mềm (Admin)", Toast.LENGTH_SHORT).show());
+        }
+        btnFavoriteMovies.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), HistoryActivity.class);
+            startActivity(intent);
+        });
+        btnNotificationSettings.setOnClickListener(v -> {
+            SettingsFragment settingsFragment = new SettingsFragment();
+
+            getParentFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, settingsFragment)
+                    .hide(this)
+                    .addToBackStack("SETTINGS_FRAGMENT")
+                    .commit();
+        });
+
+        btnEditProfile.setOnClickListener(v -> {
+            HelpSupportFragment helpFragment = new HelpSupportFragment();
+            getParentFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, helpFragment)
+                    .hide(this)
+                    .addToBackStack("HELP_FRAGMENT")
+                    .commit();
+        });
+
 
         // Hiển thị ảnh đại diện đồng bộ
         if (imgAvatar != null && !avatarUrl.isEmpty()) {
