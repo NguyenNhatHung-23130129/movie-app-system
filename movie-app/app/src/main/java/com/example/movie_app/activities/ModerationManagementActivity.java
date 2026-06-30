@@ -1,23 +1,19 @@
 package com.example.movie_app.activities;
 
-import android.graphics.Color;
 import android.os.Bundle;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.widget.TextView;
 
 import com.example.movie_app.R;
 import com.example.movie_app.adapter.ReportedUserAdapter;
 import com.example.movie_app.adapter.ViolationCommentAdapter;
-import com.example.movie_app.utils.AdminNavigationHelper; // Sử dụng helper để điều hướng
+import com.example.movie_app.utils.AdminNavigationHelper;
 import com.example.movie_app.viewmodel.ModerationViewModel;
 
-public class ModerationManagementActivity extends AppCompatActivity {
+public class ModerationManagementActivity extends BaseAdminActivity {
 
     private TextView tvTotalUsersCount, tvViolationBadge;
     private TextView tvTrustScoreValue, tvBannedTodayValue;
@@ -33,11 +29,10 @@ public class ModerationManagementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_moderation);
 
         initViews();
+        setupAdminInfo();
         setupRecyclerViews();
         initViewModel();
-        setupActiveTab();
 
-        // Tích hợp điều hướng chung cho Admin
         AdminNavigationHelper.setupAdminBottomNavigation(this);
     }
 
@@ -54,7 +49,6 @@ public class ModerationManagementActivity extends AppCompatActivity {
     private void setupRecyclerViews() {
         rvReportedUsers.setLayoutManager(new LinearLayoutManager(this));
         userAdapter = new ReportedUserAdapter(user -> {
-            // Gọi ViewModel để khóa/mở khóa qua API
             moderationViewModel.changeUserLockStatus(user);
         });
         rvReportedUsers.setAdapter(userAdapter);
@@ -82,7 +76,6 @@ public class ModerationManagementActivity extends AppCompatActivity {
     private void initViewModel() {
         moderationViewModel = new ViewModelProvider(this).get(ModerationViewModel.class);
 
-        // Quan sát dữ liệu thống kê từ API
         moderationViewModel.getStatsData().observe(this, stats -> {
             if (stats != null) {
                 tvTotalUsersCount.setText(stats.getTotalUsers() + " Tổng số");
@@ -92,30 +85,18 @@ public class ModerationManagementActivity extends AppCompatActivity {
             }
         });
 
-        // Cập nhật danh sách User báo cáo thực tế
         moderationViewModel.getReportedUsers().observe(this, users -> {
             if (users != null) userAdapter.submitList(users);
         });
 
-        // Cập nhật danh sách bình luận vi phạm thực tế
         moderationViewModel.getViolationComments().observe(this, comments -> {
             if (comments != null) commentAdapter.submitList(comments);
         });
 
-        // Hiển thị thông báo từ kết quả gọi API
         moderationViewModel.getToastMessage().observe(this, message -> {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    private void setupActiveTab() {
-        ImageView imgModerate = findViewById(R.id.img_nav_moderate);
-        TextView tvModerate = findViewById(R.id.tv_nav_moderate);
-        if (imgModerate != null && tvModerate != null) {
-            imgModerate.setColorFilter(Color.parseColor("#E50914"));
-            tvModerate.setTextColor(Color.parseColor("#E50914"));
-        }
     }
 }

@@ -2,7 +2,6 @@ package com.example.movie_app.activities;
 
 import android.os.Bundle;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,7 +14,7 @@ import com.example.movie_app.adapter.SystemLogAdapter;
 import com.example.movie_app.utils.AdminNavigationHelper;
 import com.example.movie_app.viewmodel.SystemSafetyViewModel;
 
-public class SystemSafetyManagementActivity extends AppCompatActivity {
+public class SystemSafetyManagementActivity extends BaseAdminActivity {
 
     private TextView tvSafetyPercentage, tvSafetyStatus, btnBadgeUrgent, btnViewAllReports;
     private TextView tvLockedAccountsCount, tvSecurityVersion;
@@ -34,11 +33,10 @@ public class SystemSafetyManagementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_system_safety);
 
         initViews();
+        setupAdminInfo();
         setupRecyclerViews();
         initViewModel();
         setupInteractions();
-
-        // Khởi tạo thanh điều hướng Admin
         AdminNavigationHelper.setupAdminBottomNavigation(this);
     }
 
@@ -102,10 +100,12 @@ public class SystemSafetyManagementActivity extends AppCompatActivity {
     }
 
     private void setupInteractions() {
-        switchMaintenance.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isUserInitiatedChange) {
-                safetyViewModel.changeMaintenanceMode(isChecked);
-            }
-        });
+        if (switchMaintenance != null) {
+            switchMaintenance.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isUserInitiatedChange) {
+                    safetyViewModel.changeMaintenanceMode(isChecked);
+                }
+            });
+        }
     }
 }
