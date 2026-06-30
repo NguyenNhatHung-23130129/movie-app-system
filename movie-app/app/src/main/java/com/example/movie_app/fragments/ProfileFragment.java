@@ -103,10 +103,10 @@ public class ProfileFragment extends Fragment {
 
         if (tvUserName != null) tvUserName.setText(name);
         if (tvUserEmail != null) tvUserEmail.setText(email);
-        if (btnManageSoftware != null) {
-            btnManageSoftware.setOnClickListener(v -> Toast.makeText(getContext(), "Mở mục Quản lý phần mềm (Admin)", Toast.LENGTH_SHORT).show());
-        }
-
+        btnFavoriteMovies.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), HistoryActivity.class);
+            startActivity(intent);
+        });
         btnNotificationSettings.setOnClickListener(v -> {
             SettingsFragment settingsFragment = new SettingsFragment();
 
@@ -127,7 +127,6 @@ public class ProfileFragment extends Fragment {
         });
 
 
-        // Hiển thị ảnh đại diện đồng bộ
         if (imgAvatar != null && !avatarUrl.isEmpty()) {
             Glide.with(this)
                     .load(avatarUrl)
@@ -137,7 +136,6 @@ public class ProfileFragment extends Fragment {
 
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
-                // Xóa sạch thông tin khi đăng xuất
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.clear();
                 editor.apply();

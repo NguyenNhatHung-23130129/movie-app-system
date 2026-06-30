@@ -409,7 +409,7 @@
                     android:orientation="vertical"
                     android:background="@drawable/bg_info_card"
                     android:padding="12dp"
-                    android:layout_marginBottom="24dp">
+                    android:layout_marginBottom="16dp">
 
                     <RatingBar
                         android:id="@+id/ratingBarInput"
@@ -446,8 +446,7 @@
                             android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_send"
                             android:padding="8dp"
-                            app:tint="#E50914"
-                            android:layout_marginStart="8dp"
+                            android:elevation="10dp"  app:tint="#E50914"
                             android:clickable="true"
                             android:focusable="true"/>
                     </LinearLayout>
@@ -457,7 +456,8 @@
                     android:id="@+id/rvComments"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
+                    android:nestedScrollingEnabled="false"
+                    android:paddingBottom="24dp" />
 
             </LinearLayout>
 

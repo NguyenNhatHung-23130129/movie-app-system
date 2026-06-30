@@ -5,11 +5,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RatingBar;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.movie_app.R;
 import com.example.movie_app.models.Comment;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentViewHolder> {
 
@@ -17,6 +23,11 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     public CommentAdapter(List<Comment> commentList) {
         this.commentList = commentList;
+    }
+
+    public void updateList(List<Comment> newList) {
+        this.commentList = newList;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -28,14 +39,20 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     @Override
     public void onBindViewHolder(@NonNull CommentViewHolder holder, int position) {
+        if (commentList == null || commentList.isEmpty()) return;
+
         Comment comment = commentList.get(position);
 
-        // Hiển thị tên người dùng
-        holder.tvUsername.setText(comment.getUsername() + " • Vừa xong");
-        // Hiển thị nội dung
-        holder.tvContent.setText(comment.getContentComment());
-        // Hiển thị số sao
-        holder.ratingBar.setRating(comment.getRating());
+        holder.tvUsername.setText(comment.getUsername() != null ? comment.getUsername() : "Ẩn danh");
+        holder.tvContent.setText(comment.getContentComment() != null ? comment.getContentComment() : "");
+        holder.ratingBar.setRating((float) comment.getRating());
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            holder.tvTime.setText(sdf.format(new Date(comment.getTimestamp())));
+        } catch (Exception e) {
+            holder.tvTime.setText("Vừa xong");
+        }
     }
 
     @Override
@@ -44,14 +61,15 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
-        TextView tvUsername, tvContent;
+        TextView tvUsername, tvContent, tvTime;
         RatingBar ratingBar;
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvUsername = itemView.findViewById(R.id.tvCommentUsername);
+            tvUsername = itemView.findViewById(R.id.tvCommentUser);
             tvContent = itemView.findViewById(R.id.tvCommentContent);
-            ratingBar = itemView.findViewById(R.id.ratingBarComment);
+            tvTime = itemView.findViewById(R.id.tvCommentTime);
+            ratingBar = itemView.findViewById(R.id.rbCommentRating);
         }
     }
 }
