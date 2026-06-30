@@ -1,12 +1,21 @@
 package com.example.movie_app.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import com.example.movie_app.R;
+import com.example.movie_app.models.User;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -26,12 +35,8 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
         tvLoginNow = findViewById(R.id.tvLoginNow);
 
-        // Trở về màn hình đăng nhập nếu đã có tài khoản
-        tvLoginNow.setOnClickListener(v -> {
-            finish(); // Đóng Activity hiện tại
-        });
+        tvLoginNow.setOnClickListener(v -> finish());
 
-        // Bấm nút Đăng ký
         btnRegister.setOnClickListener(v -> {
             String name = edtName.getText().toString().trim();
             String email = edtEmailReg.getText().toString().trim();
@@ -48,29 +53,63 @@ public class RegisterActivity extends AppCompatActivity {
                 return;
             }
 
-            // XÁC THỰC TRỰC TIẾP QUA FIREBASE SDK
-            com.google.firebase.auth.FirebaseAuth.getInstance()
-                    .createUserWithEmailAndPassword(email, password)
+            btnRegister.setEnabled(false);
+            btnRegister.setText("Đang xử lý...");
+
+            FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // Cập nhật DisplayName (Họ và tên) cho tài khoản vừa tạo
-                            var user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
-                            if (user != null) {
-                                com.google.firebase.auth.UserProfileChangeRequest profileUpdates =
-                                        new com.google.firebase.auth.UserProfileChangeRequest.Builder()
-                                                .setDisplayName(name)
-                                                .build();
-                                user.updateProfile(profileUpdates);
-                            }
+                            FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+                            if (fbUser != null) {
+                                UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(name)
+                                        .build();
+                                fbUser.updateProfile(profileUpdates);
 
-                            Toast.makeText(RegisterActivity.this, "Đăng ký thành công! Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
-                            finish(); // Tự động quay về màn hình Login
+                                User userModel = new User(
+                                        fbUser.getUid(),
+                                        name,
+                                        email,
+                                        "", 
+                                        0,
+                                        Timestamp.now()
+                                );
+                                saveUserToFirestore(userModel);
+                            }
                         } else {
-                            // Hiển thị thông báo lỗi chi tiết từ Firebase (ví dụ: mật khẩu quá ngắn, trùng email...)
-                            String errorMsg = task.getException() != null ? task.getException().getMessage() : "Đăng ký thất bại!";
-                            Toast.makeText(RegisterActivity.this, "Lỗi: " + errorMsg, Toast.LENGTH_LONG).show();
+                            btnRegister.setEnabled(true);
+                            btnRegister.setText("Đăng ký");
+                            handleRegisterError(task.getException());
                         }
                     });
         });
+    }
+
+    private void saveUserToFirestore(User user) {
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .set(user)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(RegisterActivity.this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+                    
+                    FirebaseAuth.getInstance().signOut();
+                    
+                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnRegister.setEnabled(true);
+                    btnRegister.setText("Đăng ký");
+                    Toast.makeText(RegisterActivity.this, "Lỗi lưu Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void handleRegisterError(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
+            Toast.makeText(this, "Email này đã được sử dụng!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Lỗi: " + (e != null ? e.getMessage() : "Đăng ký thất bại"), Toast.LENGTH_LONG).show();
+        }
     }
 }
