@@ -13,42 +13,17 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Fixed Header Area - Forced to stay Black -->
+        <include
+            android:id="@+id/layout_header"
+            layout="@layout/layout_admin_header" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="16dp"
             android:background="@color/colorBackground">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Quản lý phim"
-                    android:textColor="@color/white"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_alignParentEnd="true"
-                    app:cardBackgroundColor="#222224"
-                    app:cardCornerRadius="18dp"
-                    app:strokeWidth="0dp">
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:padding="8dp"
-                        android:src="@drawable/outline_account_circle_24"
-                        app:tint="@color/white" />
-                </com.google.android.material.card.MaterialCardView>
-            </RelativeLayout>
 
             <EditText
                 android:id="@+id/edt_search_movie"

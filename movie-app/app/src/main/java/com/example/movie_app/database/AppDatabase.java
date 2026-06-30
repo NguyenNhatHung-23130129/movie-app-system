@@ -17,8 +17,10 @@ import com.example.movie_app.models.MovieItem; // Import Model
 import com.example.movie_app.models.ResumeData;
 
 
+
 @Database(entities = {UserEntity.class, WatchHistoryEntity.class, MovieItem.class, ResumeData.class, FavoriteEntity.class},
         version = 1,
+
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 

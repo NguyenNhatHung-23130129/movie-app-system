@@ -16,23 +16,19 @@ public class AdminNotificationController {
     @RequestMapping("/send")
     public ResponseEntity<?> sendNotificationToTopic(@RequestBody NotificationRequest request) {
         try {
-            // Thiết lập phần hiển thị trực quan của thông báo
             Notification notification = Notification.builder()
                     .setTitle(request.getTitle())
                     .setBody(request.getMessage())
                     .build();
 
-            // Nếu không truyền topic, mặc định gửi tới nhóm toàn bộ user "all_users"
             String targetTopic = (request.getTopic() != null && !request.getTopic().isEmpty())
                     ? request.getTopic() : "all_users";
 
-            // Xây dựng message gửi qua Firebase
             Message message = Message.builder()
                     .setNotification(notification)
                     .setTopic(targetTopic)
                     .build();
 
-            // Thực hiện lệnh push qua Firebase Admin SDK
             String response = FirebaseMessaging.getInstance().send(message);
 
             return ResponseEntity.ok("{\"message\": \"Đã gửi thông báo thành công!\", \"fcm_id\": \"" + response + "\"}");
