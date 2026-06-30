@@ -3,7 +3,6 @@ package com.example.movie_app.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -31,6 +30,7 @@ public class HomeActivity extends AppCompatActivity {
     private final ProfileFragment profileFragment = new ProfileFragment();
     private int currentTabId = -1;
     private DrawerLayout drawerLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +119,11 @@ public class HomeActivity extends AppCompatActivity {
     private void initNavigation() {
         findViewById(R.id.tabHome).setOnClickListener(v -> loadFragment(homeFragment, R.id.tabHome));
         findViewById(R.id.tabExplore).setOnClickListener(v -> loadFragment(exploreFragment, R.id.tabExplore));
-
+        findViewById(R.id.tabFavorite).setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, HistoryActivity.class);
+            intent.putExtra("OPEN_TAB", "FAVORITE");
+            startActivity(intent);
+        });
         View tabProfile = findViewById(R.id.tabProfile);
         if (tabProfile != null) {
             tabProfile.setOnClickListener(v -> loadFragment(profileFragment, R.id.tabProfile));
@@ -164,6 +168,7 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(homeFragment, R.id.tabHome);
             } else if (targetTabId == R.id.tabExplore) {
                 loadFragment(exploreFragment, R.id.tabExplore);
+
             } else if (targetTabId == R.id.tabProfile) {
                 loadFragment(profileFragment, R.id.tabProfile);
             }
