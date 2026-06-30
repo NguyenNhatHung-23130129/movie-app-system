@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">movie-app</string>
+    <string name="default_web_client_id" >385926287589-fddbhsdjip984fc5b3f8243rco08e0c2.apps.googleusercontent.com </string>
+
     <style name="CircleImageView">
         <item name="cornerSize">50%</item>
         <item name="cornerFamily">rounded</item>
