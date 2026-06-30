@@ -12,7 +12,7 @@ import com.example.movie_app.entity.WatchHistoryEntity;
 import com.example.movie_app.models.MovieItem; // Import Model
 
 @Database(entities = {UserEntity.class, WatchHistoryEntity.class, MovieItem.class},
-        version = 1,
+        version = 2,
         exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 

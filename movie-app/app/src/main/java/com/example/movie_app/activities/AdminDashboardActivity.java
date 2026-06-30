@@ -46,7 +46,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         tvUserName = findViewById(R.id.tvUserName);
         tvUserJoinedDate = findViewById(R.id.tvUserJoinedDate);
-        tvAdminInitial = findViewById(R.id.tvAdminInitial);
+        tvAdminInitial = findViewById(R.id.tvHeaderInitial);
 
         tvActivityMessage = findViewById(R.id.tvActivityMessage);
         tvActivityTime = findViewById(R.id.tvActivityTime);

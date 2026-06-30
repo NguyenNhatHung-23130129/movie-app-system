@@ -18,65 +18,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <include
                 android:id="@+id/layoutHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#000000"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="14dp">
-
-                <ImageView
-                    android:id="@+id/imgHeaderLogo"
-                    android:layout_width="34dp"
-                    android:layout_height="28dp"
-                    android:layout_marginEnd="12dp"
-                    android:contentDescription="App Logo"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/menu_24" />
-
-
-                <TextView
-                    android:id="@+id/txtHeaderTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Dashboard"
-                    android:textColor="#E2E2E8"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:id="@+id/imgHeaderNotification"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="Notification Icon"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/search_24" />
-
-                <LinearLayout
-                    android:id="@+id/btnProfileAvatar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_circle_red"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    android:padding="8dp">
-
-                    <TextView
-                        android:id="@+id/tvAdminInitial"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="AD"
-                        android:textColor="#FFFFFF"
-                        android:textSize="10sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
+                layout="@layout/layout_admin_header" />
 
             <LinearLayout
                 android:layout_width="match_parent"

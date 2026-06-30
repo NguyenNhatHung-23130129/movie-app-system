@@ -38,7 +38,6 @@ public class DashboardAnalyticsViewModel extends AndroidViewModel {
     }
 
     public void loadAnalytics() {
-        // Trigger reload bằng cách set lại giá trị hiện tại
         Integer current = selectedFilterDays.getValue();
         selectedFilterDays.setValue(current != null ? current : 30);
     }
