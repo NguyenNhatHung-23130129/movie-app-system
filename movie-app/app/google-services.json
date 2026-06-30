@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "385926287589",
+    "firebase_url": "https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "movie-app-system-d6696",
     "storage_bucket": "movie-app-system-d6696.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.movie_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "385926287589-n5qpuqt6mc4ok4818q2cis094dha0rla.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.movie_app",
+            "certificate_hash": "7d60ad111c6c5c619f0a6681f2e7cea8506c984c"
+          }
+        },
+        {
+          "client_id": "385926287589-fddbhsdjip984fc5b3f8243rco08e0c2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA_UyVYQ37TWsGCjif6F5P1tK7xh_qRJW4"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "385926287589-fddbhsdjip984fc5b3f8243rco08e0c2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

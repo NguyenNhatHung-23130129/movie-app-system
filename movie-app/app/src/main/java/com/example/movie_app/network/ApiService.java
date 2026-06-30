@@ -88,4 +88,8 @@ public interface ApiService {
 
     @GET("api/v1/admin/analytics/export")
     Call<Void> exportAnalyticsReport(@Query("days") int days);
+
+    @POST("api/v1/auth/google")
+    Call<Void> loginWithGoogle(@Body GoogleLoginRequest request);
+
 }
