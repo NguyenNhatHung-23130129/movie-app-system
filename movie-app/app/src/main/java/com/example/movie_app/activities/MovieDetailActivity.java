@@ -226,7 +226,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         });
 
         loadRelatedMovies(info);
-        checkFavoriteState(info.getId());
+        checkFavoriteState(info.getSlug());
         btnAddToMyList.setOnClickListener(v -> toggleFavorite(info, finalImageUrl));
     }
 
@@ -316,30 +316,35 @@ public class MovieDetailActivity extends AppCompatActivity {
                     });
         });
     }
-    private void checkFavoriteState(String movieId) {
-        if (movieId == null || movieId.isEmpty()) return;
+    private void checkFavoriteState(String slug) {
+        if (slug == null || slug.isEmpty()) return;
 
-        // Quan sát LiveData từ Room DB, tự động cập nhật UI
-        movieViewModel.isFavorite(currentUserId, movieId).observe(this, isFav -> {
+        // Truyền slug thay vì id để kiểm tra xem đã yêu thích chưa
+        movieViewModel.isFavorite(currentUserId, slug).observe(this, isFav -> {
             this.isFavorite = (isFav != null && isFav);
             updateFavoriteUI();
         });
     }
 
     private void toggleFavorite(MovieDetailResponse.MovieDetail info, String imageUrl) {
-        if (info == null || info.getId() == null) return;
+        if (info == null || info.getSlug() == null) return;
+
+        // THỦ THUẬT: Tạm thời gán Slug vào ID
+        // Việc này ép FavoriteEntity phải lưu Slug vào database, giống hệt như cách Lịch sử đang làm
+        String originalId = info.getId();
+        info.setId(info.getSlug());
 
         if (isFavorite) {
-            // Đã thích -> Nhấn vào thì Hủy thích
-            movieViewModel.removeFromFavorites(currentUserId, info.getId());
+            movieViewModel.removeFromFavorites(currentUserId, info.getSlug());
             Toast.makeText(this, "Đã bỏ yêu thích", Toast.LENGTH_SHORT).show();
         } else {
-            // Chưa thích -> Nhấn vào thì Thêm thích
             movieViewModel.addToFavorites(currentUserId, info, imageUrl);
             Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
         }
-    }
 
+        // Trả lại ID gốc cho info ngay sau đó để không làm hỏng các chức năng khác
+        info.setId(originalId);
+    }
     private void updateFavoriteUI() {
         if (isFavorite) {
             imgAddToMyList.setImageResource(R.drawable.ic_done);
