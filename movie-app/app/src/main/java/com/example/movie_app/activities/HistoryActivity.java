@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.movie_app.R;
+import com.example.movie_app.adapter.HistoryAdapter;
 import com.example.movie_app.adapter.MovieAdapter; // Giả sử bạn sử dụng MovieAdapter
 import com.example.movie_app.database.AppDatabase;
 import com.example.movie_app.entity.FavoriteEntity;
@@ -92,8 +93,9 @@ public class HistoryActivity extends AppCompatActivity {
                 }
 
                 // Khởi tạo adapter và gán cho RecyclerView
-                MovieAdapter movieAdapter = new MovieAdapter(movieList);
-                rvMovieList.setAdapter(movieAdapter);
+                HistoryAdapter adapter = new HistoryAdapter(HistoryActivity.this, movieList);
+                rvMovieList.setAdapter(adapter);
+
             });
         }).start();
     }
@@ -116,8 +118,8 @@ public class HistoryActivity extends AppCompatActivity {
             }
 
             // Khởi tạo adapter và gán cho RecyclerView
-            MovieAdapter movieAdapter = new MovieAdapter(movieList);
-            rvMovieList.setAdapter(movieAdapter);
+            HistoryAdapter adapter = new HistoryAdapter(HistoryActivity.this, movieList);
+            rvMovieList.setAdapter(adapter);
         });
     }
 }
