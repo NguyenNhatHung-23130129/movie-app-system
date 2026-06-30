@@ -12,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MovieManagementActivity extends AppCompatActivity {
+public class MovieManagementActivity extends BaseAdminActivity {
     private static final String TAG = "ADMIN_MOVIE";
 
     private TextView btnFilterAll, btnFilterPublished, btnFilterDraft;
@@ -45,6 +44,7 @@ public class MovieManagementActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_movie);
         
         initViews();
+        setupAdminInfo();
         setupRecyclerView();
         setupViewModel();
         setupClickListeners();
@@ -79,8 +79,6 @@ public class MovieManagementActivity extends AppCompatActivity {
             }
         });
     }
-
-
 
     private void showAddEditMovieDialog(MovieItem movie) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -158,13 +156,9 @@ public class MovieManagementActivity extends AppCompatActivity {
 
     private void setupViewModel() {
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
-        
-        Log.d(TAG, "Bắt đầu đồng bộ dữ liệu từ Firebase...");
-        movieViewModel.refreshData(); // Kích hoạt sync
-        
+        movieViewModel.refreshData();
         movieViewModel.getMoviesFromFirebase().observe(this, movies -> {
             if (movies != null) {
-                Log.d(TAG, "Đã nhận dữ liệu từ Room: " + movies.size() + " phim");
                 fullMovieList = movies;
                 adapter.setMovieList(movies);
             }
@@ -197,17 +191,14 @@ public class MovieManagementActivity extends AppCompatActivity {
             updateFilterUI(btnFilterAll);
             adapter.setMovieList(fullMovieList);
         });
-
         btnFilterPublished.setOnClickListener(v-> updateFilterUI(btnFilterPublished));
         btnFilterDraft.setOnClickListener(v-> updateFilterUI(btnFilterDraft));
         fabAddMovie.setOnClickListener(v-> showAddEditMovieDialog(null));
     }
 
     private void updateFilterUI(TextView activeBtn) {
-        // Reset tất cả các nút về trạng thái inactive
         int inactiveBg = R.drawable.bg_filter_inactive;
         int inactiveTextColor = getResources().getColor(R.color.colorTextSecondary);
-
         btnFilterAll.setBackgroundResource(inactiveBg);
         btnFilterAll.setTextColor(inactiveTextColor);
         btnFilterPublished.setBackgroundResource(inactiveBg);
@@ -215,7 +206,6 @@ public class MovieManagementActivity extends AppCompatActivity {
         btnFilterDraft.setBackgroundResource(inactiveBg);
         btnFilterDraft.setTextColor(inactiveTextColor);
 
-        // Kích hoạt nút đang chọn
         activeBtn.setBackgroundResource(R.drawable.bg_filter_active);
         activeBtn.setTextColor(getResources().getColor(R.color.white));
     }
@@ -223,7 +213,7 @@ public class MovieManagementActivity extends AppCompatActivity {
     private void showDeleteConfirmDialog(MovieItem movie) {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle("Xác nhận xóa")
-                .setMessage("Bạn có chắc chắn muốn xóa phim '" + movie.getName() + "'? Hành động này không thể hoàn tác.")
+                .setMessage("Bạn có chắc chắn muốn xóa phim '" + movie.getName() + "'?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     movieViewModel.deleteMovie(movie, task -> {
                         if (task.isSuccessful()) {

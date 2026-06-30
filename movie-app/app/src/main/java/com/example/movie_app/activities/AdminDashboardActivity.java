@@ -1,11 +1,7 @@
 package com.example.movie_app.activities;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.movie_app.R;
 import com.example.movie_app.utils.AdminNavigationHelper;
@@ -15,11 +11,11 @@ import com.google.firebase.firestore.Query;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-public class AdminDashboardActivity extends AppCompatActivity {
+public class AdminDashboardActivity extends BaseAdminActivity {
 
     private FirebaseFirestore db;
     private TextView tvTotalUsers, tvTotalMovies, tvPendingCount, tvStreamingCount;
-    private TextView tvUserName, tvUserJoinedDate, tvAdminInitial;
+    private TextView tvUserName, tvUserJoinedDate;
     private TextView tvActivityMessage, tvActivityTime;
 
     @Override
@@ -29,8 +25,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         initViews();
+        setupAdminInfo();
 
-        // Gọi các hàm load dữ liệu
         loadStats();
         loadRecentUser();
         loadSystemActivity();
@@ -46,14 +42,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         tvUserName = findViewById(R.id.tvUserName);
         tvUserJoinedDate = findViewById(R.id.tvUserJoinedDate);
-        tvAdminInitial = findViewById(R.id.tvHeaderInitial);
 
         tvActivityMessage = findViewById(R.id.tvActivityMessage);
         tvActivityTime = findViewById(R.id.tvActivityTime);
     }
 
     private void loadStats() {
-        // 1. Lấy tổng số User
         db.collection("users").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 int count = task.getResult().size();
@@ -61,7 +55,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // 2. Lấy tổng số Phim
         db.collection("movies").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 int count = task.getResult().size();
@@ -69,7 +62,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // 3. Lấy số lượng chờ kiểm duyệt (ví dụ từ collection 'reviews')
         db.collection("reviews")
                 .whereEqualTo("status", "pending")
                 .get()
@@ -79,7 +71,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     }
                 });
 
-        // Mặc định cho Streaming (hoặc lấy từ collection active_sessions nếu có)
         tvStreamingCount.setText("0");
     }
 
@@ -92,10 +83,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         var doc = queryDocumentSnapshots.getDocuments().get(0);
                         String name = doc.getString("fullName");
-                        tvUserName.setText(name != null ? name : "Unknown User");
+                        if (tvUserName != null) tvUserName.setText(name != null ? name : "Unknown User");
 
                         var timestamp = doc.getTimestamp("createdAt");
-                        if (timestamp != null) {
+                        if (timestamp != null && tvUserJoinedDate != null) {
                             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
                             tvUserJoinedDate.setText("Joined " + sdf.format(timestamp.toDate()));
                         }
@@ -104,7 +95,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void loadSystemActivity() {
-        // Lấy log hoạt động mới nhất (ví dụ: đăng ký mới)
         tvActivityMessage.setText("Hệ thống đang hoạt động ổn định");
         tvActivityTime.setText("VỪA XONG");
     }
