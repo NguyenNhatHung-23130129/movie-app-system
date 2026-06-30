@@ -7,9 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.movie_app.activities.AdminDashboardActivity;
 import com.example.movie_app.activities.DashboardAnalyticsActivity;
 import com.example.movie_app.activities.ModerationManagementActivity;
 import com.example.movie_app.activities.MovieManagementActivity;
@@ -51,9 +49,6 @@ public class AdminNavigationHelper {
         Intent intent = new Intent(activity, targetClass);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         activity.startActivity(intent);
-        
-        // Không kết thúc activity cũ để giữ stack nếu cần, 
-        // hoặc dùng finish() nếu muốn tối ưu bộ nhớ
     }
 
     private static void highlightCurrentTab(Activity activity) {
@@ -62,7 +57,7 @@ public class AdminNavigationHelper {
 
         resetTabColors(activity, inactiveColor);
 
-        if (activity instanceof DashboardAnalyticsActivity || activity instanceof AdminDashboardActivity) {
+        if (activity instanceof DashboardAnalyticsActivity) {
             applyColorToTab(activity, R.id.nav_dashboard, activeColor);
         } else if (activity instanceof MovieManagementActivity) {
             applyColorToTab(activity, R.id.nav_movies, activeColor);

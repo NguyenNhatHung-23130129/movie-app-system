@@ -195,7 +195,11 @@
                         android:textColor="#5A6175" />
                 </RelativeLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C313C"/>
+                <View
+                    android:id="@+id/dividerAdmin"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#2C313C"/>
 
                 <!-- Lịch sử giao dịch -->
                 <RelativeLayout

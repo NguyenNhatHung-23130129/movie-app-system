@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,7 +22,7 @@ import com.example.movie_app.viewmodel.DashboardAnalyticsViewModel;
 
 import java.util.List;
 
-public class DashboardAnalyticsActivity extends AppCompatActivity {
+public class DashboardAnalyticsActivity extends BaseAdminActivity {
 
     private TextView tvFilterTimeLabel, tvGrowthPercentage, tvCounterTotalUsers, tvCounterUserSubtext, tvPeakHours;
     private TextView tvMovieWatchTime, tvSeriesWatchTime;
@@ -41,11 +40,10 @@ public class DashboardAnalyticsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_dashboard_analytics);
 
         initViews();
+        setupAdminInfo();
         setupRecyclerView();
         initViewModel();
         setupClickListeners();
-        
-        // Khởi tạo thanh điều hướng Bottom Navigation
         AdminNavigationHelper.setupAdminBottomNavigation(this);
     }
 
@@ -77,19 +75,16 @@ public class DashboardAnalyticsActivity extends AppCompatActivity {
     private void initViewModel() {
         analyticsViewModel = new ViewModelProvider(this).get(DashboardAnalyticsViewModel.class);
 
-        // Cập nhật nhãn thời gian khi bộ lọc thay đổi
         analyticsViewModel.getSelectedFilterDays().observe(this, days -> {
             if (tvFilterTimeLabel != null) tvFilterTimeLabel.setText(days + " ngày qua");
         });
 
-        // Quan sát dữ liệu thực từ Server
         analyticsViewModel.getAnalyticsData().observe(this, data -> {
             if (data != null) {
                 updateUI(data);
             }
         });
 
-        // Hiển thị thông báo khi thực hiện các tác vụ (như xuất báo cáo)
         analyticsViewModel.getOperationMessage().observe(this, message -> {
             if (message != null) Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         });
