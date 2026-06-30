@@ -6,8 +6,10 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.movie_app.dao.FavoriteDao;
 import com.example.movie_app.dao.MovieDao;
 import com.example.movie_app.database.AppDatabase;
+import com.example.movie_app.entity.FavoriteEntity;
 import com.example.movie_app.models.*;
 import com.example.movie_app.network.ApiService;
 import com.example.movie_app.network.RetrofitClient;
@@ -16,20 +18,23 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MovieRepository {
-    private static final String TAG = "MOVIE_REPO_DEBUG";
     private final ApiService apiService;
     private final MovieDao movieDao;
+    private FavoriteDao favoriteDao;
     private final String FIREBASE_URL = "https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
     public MovieRepository(Application application) {
         this.apiService = RetrofitClient.getClient().create(ApiService.class);
         AppDatabase db = AppDatabase.getDatabase(application);
         this.movieDao = db.movieDao();
+        this.favoriteDao = db.favoriteDao();
     }
 
     public LiveData<List<MovieItem>> getMoviesFromFirebase() {
@@ -56,15 +61,11 @@ public class MovieRepository {
                             if (!list.isEmpty()) {
                                 movieDao.deleteAll();
                                 movieDao.insertAll(list);
-                                Log.d(TAG, "Đã đồng bộ " + list.size() + " phim vào Room.");
-                            } else {
-                                Log.w(TAG, "Không tìm thấy phim nào trên Firebase.");
                             }
                         }).start();
                     }
 
                     @Override public void onCancelled(@NonNull DatabaseError error) {
-                        Log.e(TAG, "Lỗi sync Firebase: " + error.getMessage());
                     }
                 });
     }
@@ -217,4 +218,19 @@ public class MovieRepository {
     public LiveData<List<MovieItem>> getLatestMovies(int page) { return handleListResponse(apiService.getLatestMovies(page)); }
     public LiveData<List<MovieItem>> getSeriesMovies(int page) { return handleV1Response(apiService.getSeriesMovies(page)); }
     public LiveData<List<MovieItem>> getSingleMovies(int page) { return handleV1Response(apiService.getSingleMovies(page)); }
+    public LiveData<Boolean> isFavorite(String userId, String movieId) {
+        return favoriteDao.isFavorite(userId, movieId);
+    }
+
+    public void addFavorite(FavoriteEntity favorite) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            favoriteDao.insertFavorite(favorite);
+        });
+    }
+
+    public void removeFavorite(String userId, String movieId) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            favoriteDao.deleteFavorite(userId, movieId);
+        });
+    }
 }

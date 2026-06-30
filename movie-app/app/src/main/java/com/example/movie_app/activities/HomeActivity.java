@@ -114,9 +114,6 @@ public class HomeActivity extends AppCompatActivity {
             ImageView btnSearch = headerBar.findViewById(R.id.btnSearch);
             btnSearch.setOnClickListener(v -> startActivity(new Intent(this, SearchActivity.class)));
         }
-
-        Button btnGoToLogin = findViewById(R.id.btnGoToLogin);
-        btnGoToLogin.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
     }
 
     private void initNavigation() {
@@ -167,7 +164,7 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(homeFragment, R.id.tabHome);
             } else if (targetTabId == R.id.tabExplore) {
                 loadFragment(exploreFragment, R.id.tabExplore);
-            } else if (targetTabId == R.id.tabProfile) { // 4. Điều hướng từ Intent ngoài vào tab Profile
+            } else if (targetTabId == R.id.tabProfile) {
                 loadFragment(profileFragment, R.id.tabProfile);
             }
         }

@@ -5,8 +5,11 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,10 +24,17 @@ import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.models.Category;
+import com.example.movie_app.models.Movie;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MovieDetailActivity extends AppCompatActivity {
 
@@ -42,6 +52,18 @@ public class MovieDetailActivity extends AppCompatActivity {
     private LinearLayout btnWatchNow;
     private boolean isNested = false;
     private int activeTabId = -1;
+    private RatingBar ratingBarInput;
+    private EditText edtCommentInput;
+    private ImageView btnSendComment;
+    private DatabaseReference databaseReference;
+    private String currentMovieId = "";
+    // lưu yeu thich
+    private FrameLayout btnAddToMyList;
+    private ImageView imgAddToMyList;
+
+    private boolean isFavorite = false;
+    private String currentUserId = "USER_ID_TEST";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +73,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         isNested = getIntent().getBooleanExtra("IS_NESTED", false);
         initViews();
         setupTabClickListeners();
+        setupCommentAction();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -65,7 +88,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
             movieViewModel.getMovieDetail(movieSlug).observe(this, response -> {
                 if (response != null && response.getMovie() != null) {
-                    bindMovieData(response.getMovie(), imageUrlFromIntent);
+                    bindMovieData(response, imageUrlFromIntent);
                 } else {
                     Toast.makeText(this, "Không tìm thấy thông tin phim!", Toast.LENGTH_SHORT).show();
                 }
@@ -85,6 +108,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         tvDetailActor = findViewById(R.id.tvDetailActor);
         tvDetailCountry = findViewById(R.id.tvDetailCountry);
         tvDetailStatus = findViewById(R.id.tvDetailStatus);
+        btnAddToMyList = findViewById(R.id.btnAddToMyList);
+        imgAddToMyList = findViewById(R.id.imgAddToMyList);
 
         tabDescription = findViewById(R.id.tabDescription);
         tabComments = findViewById(R.id.tabComments);
@@ -101,9 +126,16 @@ public class MovieDetailActivity extends AppCompatActivity {
 
         rvRelatedMovies = findViewById(R.id.rvRelatedMovies);
         rvRelatedMovies.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        ratingBarInput = findViewById(R.id.ratingBarInput);
+        edtCommentInput = findViewById(R.id.edtCommentInput);
+        btnSendComment = findViewById(R.id.btnSendComment);
+        databaseReference = FirebaseDatabase.getInstance().getReference("reviews");
     }
 
-    private void bindMovieData(MovieDetailResponse.MovieDetail info, String imageUrlFromIntent) {
+
+    private void bindMovieData(MovieDetailResponse response, String imageUrlFromIntent) {
+        MovieDetailResponse.MovieDetail info = response.getMovie();
+        currentMovieId = info.getId();
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
@@ -143,23 +175,59 @@ public class MovieDetailActivity extends AppCompatActivity {
                 .into(imgDetailPoster);
 
         btnWatchNow.setOnClickListener(v -> {
-            if (info != null && info.getId() != null && !info.getId().trim().isEmpty()) {
-                String currentUserId = "USER_ID_TEST";
+            movieViewModel.saveToHistory(
+                    info.getSlug(),
+                    "USER_ID_TEST",
+                    info.getName(),
+                    finalImageUrl
+            );
 
-                movieViewModel.saveToHistory(
-                        info.getSlug(),
-                        currentUserId,
-                        info.getName(),
-                        finalImageUrl
-                );
+            Movie movie = new Movie();
+            movie.setMovieId(info.getId());
+            movie.setTitle(info.getName());
+            movie.setDescription(info.getContent());
+            movie.setPosterUrl(finalImageUrl);
 
-                Toast.makeText(this, "Đã lưu vào lịch sử: " + info.getName(), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Lỗi: Không thể lưu phim này!", Toast.LENGTH_SHORT).show();
+            ArrayList<String> urls = new ArrayList<>();
+            ArrayList<String> names = new ArrayList<>();
+
+            if (response.getEpisodes() != null && !response.getEpisodes().isEmpty()) {
+                MovieDetailResponse.EpisodeServer server = response.getEpisodes().get(0);
+                if (server.getServerData() != null) {
+                    for (MovieDetailResponse.EpisodeData ep : server.getServerData()) {
+                        String link = ep.getLinkM3u8();
+                        // FIX 3: Chỉ thêm URL hợp lệ, bỏ qua URL null/rỗng
+                        if (link != null && !link.trim().isEmpty()) {
+                            urls.add(link);
+                            names.add(ep.getName() != null ? ep.getName() : "Tập " + (urls.size()));
+                            Log.d("EP", "Episode = " + ep.getName() + " | URL = " + link);
+                        } else {
+                            Log.w("EP", "Bỏ qua tập " + ep.getName() + " do URL rỗng/null");
+                        }
+                    }
+                    Log.d("EP", "Total valid episodes = " + urls.size());
+                }
             }
+
+            // FIX 3: Kiểm tra có episode hợp lệ không trước khi mở VideoPlayer
+            if (urls.isEmpty()) {
+                Toast.makeText(this, "Phim này chưa có tập nào để phát!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            movie.setEpisodeUrls(urls);
+            movie.setEpisodeNames(names);
+            movie.setEpisodes(urls.size());
+            movie.setVideoUrl(urls.get(0));
+
+            Intent intent = new Intent(MovieDetailActivity.this, VideoPlayerActivity.class);
+            intent.putExtra("movie", movie);
+            startActivity(intent);
         });
 
         loadRelatedMovies(info);
+        checkFavoriteState(info.getId());
+        btnAddToMyList.setOnClickListener(v -> toggleFavorite(info, finalImageUrl));
     }
 
     private String listToString(List<String> list) {
@@ -206,7 +274,6 @@ public class MovieDetailActivity extends AppCompatActivity {
                 });
     }
 
-
     private void goToHome() {
         Intent intent = new Intent(this, HomeActivity.class);
         if (activeTabId != -1) {
@@ -215,5 +282,71 @@ public class MovieDetailActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
+    }private void setupCommentAction() {
+        btnSendComment.setOnClickListener(v -> {
+
+            String text = edtCommentInput.getText().toString().trim();
+            float stars = ratingBarInput.getRating();
+
+            if (text.isEmpty()) {
+                Toast.makeText(this, "Chưa nhập nội dung kìa!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (currentMovieId == null || currentMovieId.isEmpty()) {
+                Toast.makeText(this, "Lỗi: Không xác định được ID phim.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Map<String, Object> review = new HashMap<>();
+            review.put("movieId", currentMovieId);
+            review.put("username", "Người dùng ẩn danh");
+            review.put("content", text);
+            review.put("rating", stars);
+            review.put("timestamp", ServerValue.TIMESTAMP); // Sử dụng ServerValue của Realtime DB
+            review.put("status", "pending");
+
+            databaseReference.push().setValue(review)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Đã gửi bình luận chờ duyệt!", Toast.LENGTH_SHORT).show();
+                        edtCommentInput.setText("");
+                        ratingBarInput.setRating(5);
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Gửi thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
+    }
+    private void checkFavoriteState(String movieId) {
+        if (movieId == null || movieId.isEmpty()) return;
+
+        // Quan sát LiveData từ Room DB, tự động cập nhật UI
+        movieViewModel.isFavorite(currentUserId, movieId).observe(this, isFav -> {
+            this.isFavorite = (isFav != null && isFav);
+            updateFavoriteUI();
+        });
+    }
+
+    private void toggleFavorite(MovieDetailResponse.MovieDetail info, String imageUrl) {
+        if (info == null || info.getId() == null) return;
+
+        if (isFavorite) {
+            // Đã thích -> Nhấn vào thì Hủy thích
+            movieViewModel.removeFromFavorites(currentUserId, info.getId());
+            Toast.makeText(this, "Đã bỏ yêu thích", Toast.LENGTH_SHORT).show();
+        } else {
+            // Chưa thích -> Nhấn vào thì Thêm thích
+            movieViewModel.addToFavorites(currentUserId, info, imageUrl);
+            Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateFavoriteUI() {
+        if (isFavorite) {
+            imgAddToMyList.setImageResource(R.drawable.ic_done);
+            imgAddToMyList.setColorFilter(Color.parseColor("#4CAF50")); // Màu xanh
+        } else {
+            imgAddToMyList.setImageResource(R.drawable.ic_add);
+            imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8")); // Màu xám gốc
+        }
     }
 }
