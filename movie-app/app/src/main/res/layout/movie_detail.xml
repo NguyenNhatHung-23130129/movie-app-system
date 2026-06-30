@@ -409,7 +409,7 @@
                     android:orientation="vertical"
                     android:background="@drawable/bg_info_card"
                     android:padding="12dp"
-                    android:layout_marginBottom="24dp">
+                    android:layout_marginBottom="16dp">
 
                     <RatingBar
                         android:id="@+id/ratingBarInput"
@@ -445,76 +445,18 @@
                             android:layout_height="40dp"
                             android:src="@android:drawable/ic_menu_send"
                             android:padding="8dp"
-                            app:tint="#E50914"
-                            android:layout_marginStart="8dp"
+                            android:elevation="10dp"  app:tint="#E50914"
                             android:clickable="true"
                             android:focusable="true"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <LinearLayout
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvComments"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Người dùng ẩn danh • Vừa xong"
-                        android:textColor="#8E8E93"
-                        android:textSize="12sp"/>
-
-                    <RatingBar
-                        style="?android:attr/ratingBarStyleSmall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:numStars="5"
-                        android:rating="5"
-                        android:isIndicator="true"
-                        android:progressTint="#F59E0B"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="4dp"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Phim đỉnh thực sự, kỹ xảo mãn nhãn quá mọi người ơi!"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Minh Tuấn • 2 giờ trước"
-                        android:textColor="#8E8E93"
-                        android:textSize="12sp"/>
-
-                    <RatingBar
-                        style="?android:attr/ratingBarStyleSmall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:numStars="5"
-                        android:rating="4"
-                        android:isIndicator="true"
-                        android:progressTint="#F59E0B"
-                        android:layout_marginTop="4dp"
-                        android:layout_marginBottom="4dp"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Mong chờ phần tiếp theo ra mắt sớm, kết phim mở quá."
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"/>
-                </LinearLayout>
+                    android:nestedScrollingEnabled="false"
+                    android:paddingBottom="24dp" />
 
             </LinearLayout>
 
