@@ -10,6 +10,9 @@ public class ChartDataPoint {
         this.heightInDp = heightInDp;
         this.highlight = highlight;
     }
+    public ChartDataPoint() {
+
+    }
 
     public String getLabelDate() {
         return labelDate;

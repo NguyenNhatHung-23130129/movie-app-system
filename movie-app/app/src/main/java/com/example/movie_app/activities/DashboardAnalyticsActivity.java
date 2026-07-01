@@ -33,6 +33,8 @@ public class DashboardAnalyticsActivity extends BaseAdminActivity {
     private RecyclerView rvTrendingMovies;
     private TrendingMovieAdapter trendingAdapter;
     private DashboardAnalyticsViewModel analyticsViewModel;
+    private LinearLayout layoutUserRegChart, layoutUserRegLabels;
+    private TextView tvTotalNewRegistrations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +66,10 @@ public class DashboardAnalyticsActivity extends BaseAdminActivity {
         tvFilterTimeLabel = findViewById(R.id.tv_filter_time_label);
         tvPeakHours = findViewById(R.id.tv_peak_hours);
         btnFilterTime = findViewById(R.id.btn_filter_time);
+
+        layoutUserRegChart = findViewById(R.id.layout_user_registration_chart);
+        layoutUserRegLabels = findViewById(R.id.layout_user_registration_labels);
+        tvTotalNewRegistrations = findViewById(R.id.tv_total_new_registrations);
     }
 
     private void setupRecyclerView() {
@@ -90,6 +96,18 @@ public class DashboardAnalyticsActivity extends BaseAdminActivity {
 
         analyticsViewModel.getOperationMessage().observe(this, message -> {
             if (message != null) Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        });
+
+        analyticsViewModel.getTotalNewUsersCount().observe(this, count -> {
+            if (tvTotalNewRegistrations != null) {
+                tvTotalNewRegistrations.setText("+ " + count + " user mới");
+            }
+        });
+
+        analyticsViewModel.getUserRegistrationChart().observe(this, points -> {
+            if (points != null) {
+                populateUserRegistrationChart(points);
+            }
         });
     }
 
@@ -121,20 +139,47 @@ public class DashboardAnalyticsActivity extends BaseAdminActivity {
         if (points == null || points.isEmpty()) return;
 
         float density = getResources().getDisplayMetrics().density;
-        for (ChartDataPoint point : points) {
+
+        int marginDp = points.size() > 10 ? 2 : 8;
+        int marginPx = (int) (marginDp * density);
+
+        for (int i = 0; i < points.size(); i++) {
+            ChartDataPoint point = points.get(i);
             View bar = new View(this);
             int heightPx = (int) (point.getHeightInDp() * density);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, heightPx, 1f);
-            params.setMargins(10, 0, 10, 0);
+
+            if (heightPx <= 0) {
+                heightPx = (int) (4 * density);
+            }
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, heightPx);
+            params.weight = 1f;
+            params.setMargins(marginPx, 0, marginPx, 0);
             bar.setLayoutParams(params);
-            bar.setBackgroundResource(point.isHighlight() ? R.drawable.chart_bar_red : R.drawable.chart_bar_gray);
+
+            if (point.isHighlight()) {
+                bar.setBackgroundColor(Color.parseColor("#E50914"));
+            } else {
+                bar.setBackgroundColor(Color.parseColor("#3A3A3C"));
+            }
             layoutBarChart.addView(bar);
 
             TextView label = new TextView(this);
-            label.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            label.setLayoutParams(labelParams);
             label.setGravity(android.view.Gravity.CENTER);
-            label.setText(point.getLabelDate());
-            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+
+            if (points.size() > 10) {
+                if (i == 0 || i == points.size() - 1 || i % 5 == 0) {
+                    label.setText(point.getLabelDate());
+                } else {
+                    label.setText("");
+                }
+            } else {
+                label.setText(point.getLabelDate());
+            }
+
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
             label.setTextColor(Color.parseColor("#8E8E93"));
             layoutChartLabels.addView(label);
         }
@@ -155,37 +200,82 @@ public class DashboardAnalyticsActivity extends BaseAdminActivity {
 
         View actionAddMovie = findViewById(R.id.action_add_movie);
         if (actionAddMovie != null) {
-            actionAddMovie.setOnClickListener(v -> {
-                startActivity(new Intent(this, MovieManagementActivity.class));
-            });
+            actionAddMovie.setOnClickListener(v -> startActivity(new Intent(this, MovieManagementActivity.class)));
         }
 
         View actionManageUsers = findViewById(R.id.action_manage_users);
         if (actionManageUsers != null) {
-            actionManageUsers.setOnClickListener(v -> {
-                startActivity(new Intent(this, ModerationManagementActivity.class));
-            });
+            actionManageUsers.setOnClickListener(v -> startActivity(new Intent(this, ModerationManagementActivity.class)));
         }
 
         View actionModeration = findViewById(R.id.action_moderation);
         if (actionModeration != null) {
-            actionModeration.setOnClickListener(v -> {
-                startActivity(new Intent(this, ModerationManagementActivity.class));
-            });
+            actionModeration.setOnClickListener(v -> startActivity(new Intent(this, ModerationManagementActivity.class)));
         }
 
         View actionSafety = findViewById(R.id.action_safety);
         if (actionSafety != null) {
-            actionSafety.setOnClickListener(v -> {
-                startActivity(new Intent(this, SystemSafetyManagementActivity.class));
-            });
+            actionSafety.setOnClickListener(v -> startActivity(new Intent(this, SystemSafetyManagementActivity.class)));
         }
 
         View btnSeeAll = findViewById(R.id.tv_btn_see_all);
         if (btnSeeAll != null) {
-            btnSeeAll.setOnClickListener(v -> {
-                startActivity(new Intent(this, MovieManagementActivity.class));
-            });
+            btnSeeAll.setOnClickListener(v -> startActivity(new Intent(this, MovieManagementActivity.class)));
+        }
+    }
+
+    private void populateUserRegistrationChart(List<ChartDataPoint> points) {
+        if (layoutUserRegChart == null || layoutUserRegLabels == null) return;
+
+        layoutUserRegChart.removeAllViews();
+        layoutUserRegLabels.removeAllViews();
+        if (points == null || points.isEmpty()) return;
+
+        float density = getResources().getDisplayMetrics().density;
+
+        int marginDp = points.size() > 10 ? 2 : 6;
+        int marginPx = (int) (marginDp * density);
+
+        for (int i = 0; i < points.size(); i++) {
+            ChartDataPoint point = points.get(i);
+            View bar = new View(this);
+            int heightPx = (int) (point.getHeightInDp() * density);
+
+            if (heightPx <= 0) {
+                heightPx = (int) (4 * density);
+            }
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, heightPx);
+            params.weight = 1f;
+            params.setMargins(marginPx, 0, marginPx, 0);
+            params.gravity = android.view.Gravity.BOTTOM;
+            bar.setLayoutParams(params);
+
+            if (point.isHighlight()) {
+                bar.setBackgroundColor(Color.parseColor("#3498DB"));
+            } else {
+                bar.setBackgroundColor(Color.parseColor("#2C2C2E"));
+            }
+            layoutUserRegChart.addView(bar);
+
+            TextView label = new TextView(this);
+            LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            label.setLayoutParams(labelParams);
+            label.setGravity(android.view.Gravity.CENTER);
+
+            if (points.size() > 10) {
+                if (i == 0 || i == points.size() - 1 || i % 5 == 0) {
+                    label.setText(point.getLabelDate());
+                } else {
+                    label.setText("");
+                }
+            } else {
+                label.setText(point.getLabelDate());
+            }
+
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
+            label.setTextColor(Color.parseColor("#8E8E93"));
+            layoutUserRegLabels.addView(label);
         }
     }
 }
