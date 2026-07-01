@@ -47,10 +47,6 @@ public interface ApiService {
 
     @DELETE("/api/v1/resume/{movieId}")
     Call<Void> deleteResumeData(@Path("movieId") String movieId);
-
-    @GET("api/v1/admin/stats/summary")
-    Call<AdminStatsResponse> getAdminStats();
-
     @GET("api/v1/admin/moderation/stats")
     Call<ModerationDashboardStats> getModerationStats();
 
