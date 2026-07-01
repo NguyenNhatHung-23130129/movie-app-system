@@ -26,6 +26,7 @@
 
         <activity android:name=".activities.SystemSafetyManagementActivity" android:exported="true" />
         <activity android:name=".activities.ModerationManagementActivity" android:exported="true" />
+        <activity android:name=".activities.CommentManagementActivity" android:exported="true" />
         <activity android:name=".activities.MovieManagementActivity" android:exported="false" />
         <activity android:name=".activities.DashboardAnalyticsActivity" android:exported="true" />
         <activity android:name=".MainActivity" android:exported="true" />

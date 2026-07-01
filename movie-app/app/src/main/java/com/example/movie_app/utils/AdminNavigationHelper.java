@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.movie_app.activities.CommentManagementActivity;
 import com.example.movie_app.activities.DashboardAnalyticsActivity;
 import com.example.movie_app.activities.ModerationManagementActivity;
 import com.example.movie_app.activities.MovieManagementActivity;
@@ -33,7 +34,7 @@ public class AdminNavigationHelper {
         }
 
         if (navModerate != null) {
-            navModerate.setOnClickListener(v -> navigate(activity, ModerationManagementActivity.class));
+            navModerate.setOnClickListener(v -> navigate(activity, CommentManagementActivity.class));
         }
 
         if (navSafety != null) {
@@ -61,7 +62,7 @@ public class AdminNavigationHelper {
             applyColorToTab(activity, R.id.nav_dashboard, activeColor);
         } else if (activity instanceof MovieManagementActivity) {
             applyColorToTab(activity, R.id.nav_movies, activeColor);
-        } else if (activity instanceof ModerationManagementActivity) {
+        } else if (activity instanceof CommentManagementActivity || activity instanceof ModerationManagementActivity) {
             applyColorToTab(activity, R.id.nav_moderate, activeColor);
         } else if (activity instanceof SystemSafetyManagementActivity) {
             applyColorToTab(activity, R.id.nav_safety, activeColor);
