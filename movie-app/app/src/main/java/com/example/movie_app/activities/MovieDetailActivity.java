@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -22,8 +23,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
+import com.example.movie_app.adapter.CommentAdapter;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.models.Category;
+import com.example.movie_app.models.Comment;
 import com.example.movie_app.models.Movie;
 import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.viewmodel.MovieViewModel;
@@ -57,18 +60,25 @@ public class MovieDetailActivity extends AppCompatActivity {
     private ImageView btnSendComment;
     private DatabaseReference databaseReference;
     private String currentMovieId = "";
-    // lưu yeu thich
+
     private FrameLayout btnAddToMyList;
     private ImageView imgAddToMyList;
 
     private boolean isFavorite = false;
     private String currentUserId = "USER_ID_TEST";
-
+    private String currentUserName = "Người dùng ẩn danh";
+    private RecyclerView rvComments;
+    private CommentAdapter commentAdapter;
+    private List<Comment> commentList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.movie_detail);
+        android.content.SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        currentUserName = prefs.getString("USER_NAME", "Người dùng ẩn danh");
+        currentUserId = prefs.getString("USER_ID", "USER_ID_TEST");
+        initFirebaseConfig();
         activeTabId = getIntent().getIntExtra("ACTIVE_TAB_ID", -1);
         isNested = getIntent().getBooleanExtra("IS_NESTED", false);
         initViews();
@@ -94,8 +104,17 @@ public class MovieDetailActivity extends AppCompatActivity {
                 }
             });
         }
+
     }
 
+    private void initFirebaseConfig() {
+        try {
+            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        } catch (Exception e) {
+            Log.e("FIREBASE_INIT", "Lỗi: " + e.getMessage());
+        }
+    }
+    
     private void initViews() {
         imgDetailPoster = findViewById(R.id.imgDetailPoster);
         btnDetailBack = findViewById(R.id.btnDetailBack);
@@ -130,12 +149,28 @@ public class MovieDetailActivity extends AppCompatActivity {
         edtCommentInput = findViewById(R.id.edtCommentInput);
         btnSendComment = findViewById(R.id.btnSendComment);
         databaseReference = FirebaseDatabase.getInstance().getReference("reviews");
+
+        rvComments = findViewById(R.id.rvComments);
+        rvComments.setLayoutManager(new LinearLayoutManager(this));
+        rvComments.setNestedScrollingEnabled(false);
+        commentAdapter = new CommentAdapter(commentList);
+        rvComments.setAdapter(commentAdapter);
+        rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    hideKeyboard();
+                }
+            }
+        });
     }
 
 
     private void bindMovieData(MovieDetailResponse response, String imageUrlFromIntent) {
         MovieDetailResponse.MovieDetail info = response.getMovie();
         currentMovieId = info.getId();
+        loadComments();
         tvDetailTitle.setText(info.getName());
         tvDetailDescription.setText(info.getContent() != null ? info.getContent() : "Đang cập nhật mô tả...");
         if (info.getCategory() != null && !info.getCategory().isEmpty()) {
@@ -177,7 +212,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         btnWatchNow.setOnClickListener(v -> {
             movieViewModel.saveToHistory(
                     info.getSlug(),
-                    "USER_ID_TEST",
+                    currentUserId,
                     info.getName(),
                     finalImageUrl
             );
@@ -196,7 +231,6 @@ public class MovieDetailActivity extends AppCompatActivity {
                 if (server.getServerData() != null) {
                     for (MovieDetailResponse.EpisodeData ep : server.getServerData()) {
                         String link = ep.getLinkM3u8();
-                        // FIX 3: Chỉ thêm URL hợp lệ, bỏ qua URL null/rỗng
                         if (link != null && !link.trim().isEmpty()) {
                             urls.add(link);
                             names.add(ep.getName() != null ? ep.getName() : "Tập " + (urls.size()));
@@ -209,7 +243,6 @@ public class MovieDetailActivity extends AppCompatActivity {
                 }
             }
 
-            // FIX 3: Kiểm tra có episode hợp lệ không trước khi mở VideoPlayer
             if (urls.isEmpty()) {
                 Toast.makeText(this, "Phim này chưa có tập nào để phát!", Toast.LENGTH_SHORT).show();
                 return;
@@ -282,44 +315,95 @@ public class MovieDetailActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
         finish();
-    }private void setupCommentAction() {
-        btnSendComment.setOnClickListener(v -> {
+    }
 
+    private void setupCommentAction() {
+        // Lắng nghe sự kiện khi người dùng bấm nút trên bàn phím ảo
+        edtCommentInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, android.view.KeyEvent event) {
+                // Ẩn bàn phím
+                hideKeyboard();
+
+                // Bỏ comment dòng dưới đây nếu bạn muốn khi bấm nút trên bàn phím
+                // thì app tự động thực hiện lệnh Gửi bình luận luôn:
+                // btnSendComment.performClick();
+
+                return true;
+            }
+        });
+        btnSendComment.setOnClickListener(v -> {
             String text = edtCommentInput.getText().toString().trim();
             float stars = ratingBarInput.getRating();
 
             if (text.isEmpty()) {
-                Toast.makeText(this, "Chưa nhập nội dung kìa!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Chưa nhập nội dung!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            if (currentMovieId == null || currentMovieId.isEmpty()) {
-                Toast.makeText(this, "Lỗi: Không xác định được ID phim.", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Map<String, Object> review = new HashMap<>();
-            review.put("movieId", currentMovieId);
-            review.put("username", "Người dùng ẩn danh");
-            review.put("content", text);
-            review.put("rating", stars);
-            review.put("timestamp", ServerValue.TIMESTAMP); // Sử dụng ServerValue của Realtime DB
-            review.put("status", "pending");
+            String dbUrl = "https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app/";
+            DatabaseReference newCommentRef = FirebaseDatabase.getInstance(dbUrl)
+                    .getReference("comments")
+                    .child(currentMovieId)
+                    .push();
 
-            databaseReference.push().setValue(review)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Đã gửi bình luận chờ duyệt!", Toast.LENGTH_SHORT).show();
-                        edtCommentInput.setText("");
-                        ratingBarInput.setRating(5);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Gửi thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+            Comment newComment = new Comment(
+                    newCommentRef.getKey(),
+                    currentUserName,
+                    text,
+                    0,
+                    (double) stars
+            );
+
+            newCommentRef.setValue(newComment).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    newCommentRef.child("timestamp").setValue(ServerValue.TIMESTAMP);
+                    edtCommentInput.setText("");
+                    ratingBarInput.setRating(0);
+                    hideKeyboard();
+
+                }
+            });
         });
     }
+
+    private void loadComments() {
+
+        if (currentMovieId == null || currentMovieId.isEmpty()) {
+            return;
+        }
+        String dbUrl = "https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app/";
+        DatabaseReference commentsRef = FirebaseDatabase.getInstance(dbUrl)
+                .getReference("comments")
+                .child(currentMovieId);
+
+        commentsRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                List<Comment> newList = new ArrayList<>();
+                for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                    Comment comment = data.getValue(Comment.class);
+                    if (comment != null) {
+                        newList.add(comment);
+                    }
+                }
+
+                newList.sort((c1, c2) -> Long.compare(c2.getTimestamp(), c1.getTimestamp()));
+
+                if (commentAdapter != null) {
+                    commentAdapter.updateList(newList);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
+            }
+        });
+    }
+
     private void checkFavoriteState(String slug) {
         if (slug == null || slug.isEmpty()) return;
 
-        // Truyền slug thay vì id để kiểm tra xem đã yêu thích chưa
         movieViewModel.isFavorite(currentUserId, slug).observe(this, isFav -> {
             this.isFavorite = (isFav != null && isFav);
             updateFavoriteUI();
@@ -329,8 +413,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     private void toggleFavorite(MovieDetailResponse.MovieDetail info, String imageUrl) {
         if (info == null || info.getSlug() == null) return;
 
-        // THỦ THUẬT: Tạm thời gán Slug vào ID
-        // Việc này ép FavoriteEntity phải lưu Slug vào database, giống hệt như cách Lịch sử đang làm
         String originalId = info.getId();
         info.setId(info.getSlug());
 
@@ -342,16 +424,60 @@ public class MovieDetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
         }
 
-        // Trả lại ID gốc cho info ngay sau đó để không làm hỏng các chức năng khác
         info.setId(originalId);
     }
     private void updateFavoriteUI() {
         if (isFavorite) {
             imgAddToMyList.setImageResource(R.drawable.ic_done);
-            imgAddToMyList.setColorFilter(Color.parseColor("#4CAF50")); // Màu xanh
+            imgAddToMyList.setColorFilter(Color.parseColor("#4CAF50"));
         } else {
             imgAddToMyList.setImageResource(R.drawable.ic_add);
-            imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8")); // Màu xám gốc
+            imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8"));
+        }
+    }
+    private void loadComments(String movieId) {
+        // Lọc trong nhánh "reviews", chỉ lấy những bình luận thuộc về movieId hiện tại
+        databaseReference.orderByChild("movieId").equalTo(movieId)
+                .addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+                    @Override
+                    public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
+                        commentList.clear(); // Xóa list cũ trước khi nạp list mới
+
+                        for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
+                            // Đọc dữ liệu thô từ Firebase một cách an toàn
+                            String user = data.child("username").getValue(String.class);
+                            String content = data.child("content").getValue(String.class);
+                            Float rating = data.child("rating").getValue(Float.class);
+
+                            // Ép vào model Comment để đưa lên giao diện
+                            com.example.movie_app.models.Comment comment = new com.example.movie_app.models.Comment(
+                                    data.getKey(),
+                                    user != null ? user : "Ẩn danh",
+                                    content != null ? content : "",
+                                    0, // Truyền một giá trị mặc định cho timestamp
+                                    rating != null ? (double) rating : 5.0
+                            );
+                            commentList.add(comment);
+                        }
+                        // Báo cho Adapter biết dữ liệu đã thay đổi để vẽ lại màn hình
+                        commentAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
+                        Toast.makeText(MovieDetailActivity.this, "Lỗi tải bình luận!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+        // Bỏ focus khỏi ô nhập liệu
+        if (edtCommentInput != null) {
+            edtCommentInput.clearFocus();
         }
     }
 }

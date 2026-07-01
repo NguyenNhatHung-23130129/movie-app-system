@@ -3,7 +3,6 @@ package com.example.movie_app.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -19,6 +18,7 @@ import androidx.fragment.app.FragmentManager;
 
 import com.example.movie_app.R;
 import com.example.movie_app.fragments.ExploreFragment;
+import com.example.movie_app.fragments.HistoryFragment;
 import com.example.movie_app.fragments.HomeFragment;
 import com.example.movie_app.fragments.ProfileFragment; // 1. Thêm import ProfileFragment
 import com.example.movie_app.helpers.NavHelper;
@@ -29,12 +29,15 @@ public class HomeActivity extends AppCompatActivity {
     private final HomeFragment homeFragment = new HomeFragment();
     private final ExploreFragment exploreFragment = new ExploreFragment();
     private final ProfileFragment profileFragment = new ProfileFragment();
+    private final HistoryFragment historyFragment = new HistoryFragment();
     private int currentTabId = -1;
     private DrawerLayout drawerLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        logCurrentUserId();
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.home_activity);
 
@@ -62,6 +65,18 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        logCurrentUserId();
+    }
+
+    private void logCurrentUserId() {
+        android.content.SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        String currentId = prefs.getString("USER_ID", "GUEST");
+        android.util.Log.d("DEBUG_SYNC", "HomeActivity đang nhận diện USER_ID là: " + currentId);
     }
 
     private void setupDrawer() {
@@ -119,7 +134,7 @@ public class HomeActivity extends AppCompatActivity {
     private void initNavigation() {
         findViewById(R.id.tabHome).setOnClickListener(v -> loadFragment(homeFragment, R.id.tabHome));
         findViewById(R.id.tabExplore).setOnClickListener(v -> loadFragment(exploreFragment, R.id.tabExplore));
-
+        findViewById(R.id.tabFavorite).setOnClickListener(v -> loadFragment(historyFragment, R.id.tabFavorite));
         View tabProfile = findViewById(R.id.tabProfile);
         if (tabProfile != null) {
             tabProfile.setOnClickListener(v -> loadFragment(profileFragment, R.id.tabProfile));
@@ -164,8 +179,11 @@ public class HomeActivity extends AppCompatActivity {
                 loadFragment(homeFragment, R.id.tabHome);
             } else if (targetTabId == R.id.tabExplore) {
                 loadFragment(exploreFragment, R.id.tabExplore);
+
             } else if (targetTabId == R.id.tabProfile) {
                 loadFragment(profileFragment, R.id.tabProfile);
+            } else if (targetTabId == R.id.tabFavorite) {
+                loadFragment(historyFragment, R.id.tabFavorite);
             }
         }
     }

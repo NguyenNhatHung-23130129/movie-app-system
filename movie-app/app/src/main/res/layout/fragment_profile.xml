@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- PROFILE HEADER BLOCK -->
         <LinearLayout
             android:id="@+id/layoutAvatarContainer"
             android:layout_width="match_parent"
@@ -59,7 +58,6 @@
 
         </LinearLayout>
 
-        <!-- STATS LAYOUT -->
         <LinearLayout
             android:id="@+id/layoutStats"
             android:layout_width="match_parent"
@@ -79,6 +77,7 @@
                 android:padding="12dp"
                 android:layout_marginEnd="6dp">
                 <TextView
+                    android:id="@+id/tvCountWatched"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="124"
@@ -104,6 +103,7 @@
                 android:padding="12dp"
                 android:layout_marginHorizontal="3dp">
                 <TextView
+                    android:id="@+id/tvCountHours"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="482"
@@ -120,6 +120,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/btnStatsFavorite"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -129,6 +130,7 @@
                 android:padding="12dp"
                 android:layout_marginStart="6dp">
                 <TextView
+                    android:id="@+id/tvCountFavorite"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="15"
@@ -138,14 +140,13 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="DANH SÁCH"
+                    android:text="YÊU THÍCH"
                     android:textColor="#5A6175"
                     android:textSize="9sp"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- CARD 1: CÁC HOẠT ĐỘNG DỊCH VỤ -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardServiceActions"
             android:layout_width="match_parent"
@@ -163,7 +164,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Quản lý phần mềm (admin) -->
                 <RelativeLayout
                     android:id="@+id/btnManageSoftware"
                     android:layout_width="match_parent"
@@ -184,78 +184,6 @@
                         android:layout_toEndOf="@id/ic_package"
                         android:layout_marginStart="16dp"
                         android:text="Quản lý phần mềm (Admin)"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:text="❯"
-                        android:textColor="#5A6175" />
-                </RelativeLayout>
-
-                <View
-                    android:id="@+id/dividerAdmin"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#2C313C"/>
-
-                <!-- Lịch sử giao dịch -->
-                <RelativeLayout
-                    android:id="@+id/btnChangePassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="16dp">
-                    <ImageView
-                        android:id="@+id/ic_history"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_centerVertical="true"
-                        android:src="@android:drawable/ic_menu_recent_history"
-                        app:tint="#9EA3B0" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/ic_history"
-                        android:layout_marginStart="16dp"
-                        android:text="Lịch sử giao dịch"
-                        android:textColor="#FFFFFF"
-                        android:textSize="15sp" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:text="❯"
-                        android:textColor="#5A6175" />
-                </RelativeLayout>
-
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#2C313C"/>
-
-                <!-- Danh sách của tôi  -->
-                <RelativeLayout
-                    android:id="@+id/btnFavoriteMovies"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="16dp">
-                    <ImageView
-                        android:id="@+id/ic_mylist"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_centerVertical="true"
-                        android:src="@android:drawable/btn_star_big_off"
-                        app:tint="#9EA3B0" />
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toEndOf="@id/ic_mylist"
-                        android:layout_marginStart="16dp"
-                        android:text="Danh sách của tôi"
                         android:textColor="#FFFFFF"
                         android:textSize="15sp" />
                     <TextView
@@ -398,12 +326,11 @@
             </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- FOOTER INFO -->
         <TextView
             android:id="@+id/txtFooter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MovieFlow v2.4.0 • Made with ❤️"
+            android:text="CineDaily v2.4.0 • Made with ❤️"
             android:textColor="#4E5566"
             android:textSize="12sp"
             android:layout_margin="15dp"

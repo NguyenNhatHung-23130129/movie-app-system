@@ -3,14 +3,17 @@ package com.example.movie_app.models;
 import com.google.gson.annotations.SerializedName;
 
 public class ModerationDashboardStats {
-    @SerializedName("totalUsers")
+    @SerializedName("totalReportedUsers")
     private long totalUsers;
-    @SerializedName("newViolationsCount")
+
+    @SerializedName("totalPendingReports")
     private int newViolationsCount;
-    @SerializedName("trustScore")
-    private int trustScore;
-    @SerializedName("bannedToday")
+
+    @SerializedName("totalViolationComments")
     private int bannedToday;
+
+    // Backend hiện chưa trả về trustScore, ta gán mặc định để UI hiển thị đẹp
+    private int trustScore = 100;
 
     public long getTotalUsers() { return totalUsers; }
     public int getNewViolationsCount() { return newViolationsCount; }

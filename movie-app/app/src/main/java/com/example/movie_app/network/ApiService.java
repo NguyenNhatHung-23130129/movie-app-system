@@ -47,10 +47,6 @@ public interface ApiService {
 
     @DELETE("/api/v1/resume/{movieId}")
     Call<Void> deleteResumeData(@Path("movieId") String movieId);
-
-    @GET("api/v1/admin/stats/summary")
-    Call<AdminStatsResponse> getAdminStats();
-
     @GET("api/v1/admin/moderation/stats")
     Call<ModerationDashboardStats> getModerationStats();
 
@@ -88,4 +84,8 @@ public interface ApiService {
 
     @GET("api/v1/admin/analytics/export")
     Call<Void> exportAnalyticsReport(@Query("days") int days);
+
+    @POST("api/v1/auth/google")
+    Call<Void> loginWithGoogle(@Body GoogleLoginRequest request);
+
 }
