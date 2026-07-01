@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
 import com.example.movie_app.entity.FavoriteEntity;
 import com.example.movie_app.entity.WatchHistoryEntity;
@@ -25,6 +26,7 @@ import java.util.List;
 public class MovieViewModel extends AndroidViewModel {
     private final MovieRepository movieRepository;
     private final HistoryRepository historyRepository;
+    private final MutableLiveData<String> currentUserId = new MutableLiveData<>();
 
     public MovieViewModel(@NonNull Application application) {
         super(application);
@@ -34,6 +36,12 @@ public class MovieViewModel extends AndroidViewModel {
 
     public LiveData<List<MovieItem>> getMoviesByPath(String path, String slug, String typeFilter) {
         return movieRepository.getMoviesByPath(path, slug, typeFilter);
+    }
+
+    public void setCurrentUser(String userId) {
+        if (!userId.equals(currentUserId.getValue())) {
+            currentUserId.setValue(userId);
+        }
     }
 
     public LiveData<List<Category>> getGenres() { return movieRepository.getGenres(); }
@@ -74,34 +82,36 @@ public class MovieViewModel extends AndroidViewModel {
         return result;
     }
 
-    public LiveData<List<MovieItem>> getPersonalizedRecommendations(String userId, Context context) {
-        MediatorLiveData<List<MovieItem>> recommendedMovies = new MediatorLiveData<>();
+    public LiveData<List<MovieItem>> getPersonalizedRecommendations(Context context) {
+        return Transformations.switchMap(currentUserId, userId -> {
+            if ("GUEST".equals(userId)) {
+                return new MutableLiveData<>(new ArrayList<>());
+            }
 
-        new Thread(() -> {
-            List<WatchHistoryEntity> history = historyRepository.getHistory(userId);
-            if (history != null && !history.isEmpty()) {
+            return Transformations.switchMap(historyRepository.getHistory(userId), history -> {
+                MediatorLiveData<List<MovieItem>> result = new MediatorLiveData<>();
+
+                if (history == null || history.isEmpty()) {
+                    result.setValue(new ArrayList<>());
+                    return result;
+                }
 
                 LinkedHashSet<String> uniqueIds = new LinkedHashSet<>();
                 for (int i = history.size() - 1; i >= 0; i--) {
                     uniqueIds.add(history.get(i).movieId);
                     if (uniqueIds.size() >= 10) break;
                 }
+                List<String> suggestedIds = new RecommendationEngine(context)
+                        .getRecommendations(new ArrayList<>(uniqueIds), 8);
 
-                List<String> watchedIds = new ArrayList<>(uniqueIds);
-                RecommendationEngine engine = new RecommendationEngine(context);
-                List<String> suggestedIds = engine.getRecommendations(watchedIds, 8);
-
-                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                    if (!suggestedIds.isEmpty()) {
-                        recommendedMovies.addSource(movieRepository.getMoviesByListSlugs(suggestedIds),
-                                movies -> recommendedMovies.setValue(movies));
-                    } else {
-                        recommendedMovies.setValue(new ArrayList<>());
-                    }
-                });
-            }
-        }).start();
-        return recommendedMovies;
+                if (suggestedIds.isEmpty()) {
+                    result.setValue(new ArrayList<>());
+                } else {
+                    result.addSource(movieRepository.getMoviesByListSlugs(suggestedIds), result::setValue);
+                }
+                return result;
+            });
+        });
     }
 
     public void saveToHistory(String movieId, String userId, String name, String poster) {
@@ -128,5 +138,9 @@ public class MovieViewModel extends AndroidViewModel {
 
     public void removeFromFavorites(String userId, String movieId) {
         movieRepository.removeFavorite(userId, movieId);
+    }
+
+    public LiveData<List<WatchHistoryEntity>> getHistory(String userId) {
+        return historyRepository.getHistory(userId);
     }
 }

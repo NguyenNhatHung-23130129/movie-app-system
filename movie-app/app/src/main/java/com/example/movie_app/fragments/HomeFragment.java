@@ -1,5 +1,6 @@
 package com.example.movie_app.fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -47,17 +48,10 @@ public class HomeFragment extends BaseFragment {
     private RecommendationEngine recommendationEngine;
     private LinearLayout layoutRecommendedSection;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private LinearLayout layoutContinueWatchingSection;
 
     private boolean isFirstLoad = true;
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (!isFirstLoad) {
-            loadRecommendedMovies();
-        }
-        isFirstLoad = false;
-    }
+    private String lastLoadedUserId = "";
 
     @Nullable
     @Override
@@ -71,20 +65,65 @@ public class HomeFragment extends BaseFragment {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setColorSchemeColors(0xFFE50914);
         swipeRefreshLayout.setOnRefreshListener(this::refreshData);
+
         initViews(view);
         movieViewModel = new ViewModelProvider(this).get(MovieViewModel.class);
         recommendationEngine = new RecommendationEngine(requireContext());
-
+        setupObservers();
         loadAllData();
+    }
+
+    private void setupObservers() {
+        String currentUserId = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                .getString("USER_ID", "GUEST");
+
+        if ("GUEST".equals(currentUserId)) {
+            layoutContinueWatchingSection.setVisibility(View.GONE);
+        } else {
+            layoutContinueWatchingSection.setVisibility(View.VISIBLE);
+            movieViewModel.getHistory(currentUserId).observe(getViewLifecycleOwner(), historyList -> {
+                if (historyList != null && !historyList.isEmpty()) {
+                    List<MovieItem> historyMovies = new ArrayList<>();
+                    for (var history : historyList) {
+                        MovieItem item = new MovieItem(history.movieId, history.movieName, history.posterUrl);
+                        item.setSlug(history.movieId);
+                        historyMovies.add(item);
+                    }
+                    continueWatchingAdapter.setMovieList(historyMovies);
+                    rvContinueWatching.setVisibility(View.VISIBLE);
+                } else {
+                    rvContinueWatching.setVisibility(View.GONE);
+                }
+            });
+        }
+
+        movieViewModel.getPersonalizedRecommendations(requireContext())
+                .observe(getViewLifecycleOwner(), movieList -> {
+                    if (movieList != null && !movieList.isEmpty()) {
+                        recommendedAdapter.setMovieList(movieList);
+                        layoutRecommendedSection.setVisibility(View.VISIBLE);
+                    } else {
+                        layoutRecommendedSection.setVisibility(View.GONE);
+                    }
+                });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     private void loadAllData() {
         loadCategories();
         loadDataFromFirebase();
-        loadRecommendedMovies();
+
+        String currentUserId = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                .getString("USER_ID", "GUEST");
+        movieViewModel.setCurrentUser(currentUserId);
     }
 
     private void refreshData() {
+        lastLoadedUserId = "";
         loadAllData();
         swipeRefreshLayout.postDelayed(() -> swipeRefreshLayout.setRefreshing(false), 2000);
     }
@@ -115,6 +154,7 @@ public class HomeFragment extends BaseFragment {
         singleMoviesAdapter = setupMovieRecyclerView(rvSingleMovies);
         recommendedAdapter = setupMovieRecyclerView(rvRecommendedMovies);
         layoutRecommendedSection = view.findViewById(R.id.layoutRecommendedSection);
+        layoutContinueWatchingSection = view.findViewById(R.id.layoutContinueWatchingSection);
 
         if (btnViewAllContinue != null) btnViewAllContinue.setOnClickListener(v -> navigateToExplore("LATEST"));
         if (btnViewAllNew != null) btnViewAllNew.setOnClickListener(v -> navigateToExplore("NEW"));
@@ -129,21 +169,6 @@ public class HomeFragment extends BaseFragment {
         return adapter;
     }
 
-    private void loadRecommendedMovies() {
-        String currentUserId = "USER_ID_TEST";
-        movieViewModel.getPersonalizedRecommendations(currentUserId, requireContext())
-                .observe(getViewLifecycleOwner(), movieList -> {
-                    if (movieList != null && !movieList.isEmpty()) {
-                        recommendedAdapter.setMovieList(movieList);
-                        recommendedAdapter.notifyDataSetChanged();
-                        layoutRecommendedSection.setVisibility(View.VISIBLE);
-                        rvRecommendedMovies.setVisibility(View.VISIBLE);
-                    } else {
-                        rvRecommendedMovies.setVisibility(View.GONE);
-                        layoutRecommendedSection.setVisibility(View.GONE);
-                    }
-                });
-    }
 
     private void loadCategories() {
         if (movieViewModel == null) return;
@@ -179,10 +204,6 @@ public class HomeFragment extends BaseFragment {
             } else {
                 newMoviesAdapter.setMovieList(movieList);
                 newMoviesAdapter.notifyDataSetChanged();
-
-                continueWatchingAdapter.setMovieList(movieList);
-                continueWatchingAdapter.notifyDataSetChanged();
-
                 if (!movieList.isEmpty()) {
                     updateHeroSection(movieList.get(0));
                 }

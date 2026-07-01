@@ -23,12 +23,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     private List<MovieItem> movieList;
 
+
     public MovieAdapter(List<MovieItem> movieList) {
         this.movieList = movieList;
     }
 
     public void setMovieList(List<MovieItem> movieList) {
-        Log.d("DEBUG_ADAPTER", "setMovieList gọi với size: " + (movieList != null ? movieList.size() : "null"));
         this.movieList = movieList;
         notifyDataSetChanged();
     }

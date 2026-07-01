@@ -75,6 +75,8 @@ public class RecommendationEngine {
                     userProfile[i] += embeddings[idx][i];
                 }
                 count++;
+            } else {
+                Log.e("DEBUG_ENGINE", "ID phim trong lịch sử không tìm thấy trong mapping: " + id);
             }
         }
 

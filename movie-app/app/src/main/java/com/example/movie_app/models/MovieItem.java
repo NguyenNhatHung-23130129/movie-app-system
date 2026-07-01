@@ -68,7 +68,11 @@ public class MovieItem {
     private List<Country> country;
 
     public MovieItem() {}
-
+    public MovieItem(String id, String name, String posterUrl) {
+        this.id = id;
+        this.name = name;
+        this.posterUrl = posterUrl;
+    }
     @PropertyName("id")
     @NonNull
     public String getId() { return id != null ? id : ""; }
