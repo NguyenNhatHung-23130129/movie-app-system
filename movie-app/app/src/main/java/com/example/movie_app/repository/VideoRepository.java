@@ -36,7 +36,7 @@ public class VideoRepository {
 
         new Thread(() -> {
             resumeDao.insertOrUpdateResume(resume);
-            Log.d(TAG, "✅ Saved successfully to Room DB!");
+            Log.d(TAG, " Saved successfully to Room DB!");
         }).start();
     }
 
@@ -45,11 +45,19 @@ public class VideoRepository {
 
         new Thread(() -> {
             resumeDao.deleteResumeByMovieId(movieId);
-            Log.d(TAG, "✅ Deleted from Room DB!");
+            Log.d(TAG, " Deleted from Room DB!");
         }).start();
     }
 
     public LiveData<java.util.List<ResumeData>> getAllResumes() {
         return resumeDao.getAllResumes();
+    }
+
+    public void saveResumeDataSync(String movieId, String movieTitle,
+                                   long currentPosition, long duration,
+                                   int currentEpisode) {
+        ResumeData resume = new ResumeData(movieId, movieTitle,
+                currentPosition, duration, currentEpisode);
+        resumeDao.insertOrUpdateResume(resume);
     }
 }

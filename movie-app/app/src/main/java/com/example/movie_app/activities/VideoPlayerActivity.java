@@ -32,14 +32,15 @@ public class VideoPlayerActivity extends AppCompatActivity {
     private ImageButton btnPrevEpisode;
     private ImageButton btnNextEpisode;
     private ImageButton btnPlaylist;
+    private ImageButton btnBack;
 
     private Movie currentMovie;
     private String userId;
     private int currentEpisode = 1;
 
-    // FIX 1: Dùng pendingSeekPosition thay vì seekTo() trực tiếp sau prepare()
     private long pendingSeekPosition = 0;
 
+    private boolean resumeApplied = false;
     private FirebaseAuth firebaseAuth;
 
     @Override
@@ -69,8 +70,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
             tvMovieTitle.setText(movie.getTitle());
             tvCurrentEpisode.setText("Tập " + currentEpisode);
 
-            // FIX 1: setupPlayerListener phải được gọi TRƯỚC setupObservers
-            // để listener sẵn sàng bắt STATE_READY khi video load
             setupPlayerListener();
             setupObservers();
             viewModel.loadResumeData(movie.getMovieId());
@@ -104,6 +103,24 @@ public class VideoPlayerActivity extends AppCompatActivity {
         btnPrevEpisode.setOnClickListener(v -> previousEpisode());
         btnNextEpisode.setOnClickListener(v -> nextEpisode());
         btnPlaylist.setOnClickListener(v -> showPlaylist());
+        btnBack = findViewById(R.id.btn_back);
+
+        btnBack.setOnClickListener(v -> {
+
+            if (exoPlayer != null && currentMovie != null) {
+
+                viewModel.saveResumeDataUrgent(
+                        currentMovie.getMovieId(),
+                        currentMovie.getTitle(),
+                        exoPlayer.getCurrentPosition(),
+                        exoPlayer.getDuration(),
+                        currentEpisode,
+                        userId
+                );
+            }
+
+            finish();
+        });
     }
 
     private void loadEpisode(int episodeIndex) {
@@ -128,8 +145,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
             MediaItem mediaItem = MediaItem.fromUri(url);
             exoPlayer.setMediaItem(mediaItem);
             exoPlayer.prepare();
-            // FIX 1: KHÔNG gọi exoPlayer.play() ở đây
-            // play() sẽ được gọi trong listener sau khi STATE_READY
             tvCurrentEpisode.setText("Tập " + currentEpisode);
             Log.d(TAG, "Loading episode " + currentEpisode + " với URL: " + url);
         } catch (Exception e) {
@@ -140,8 +155,12 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
     private void setupObservers() {
         viewModel.getResumeData().observe(this, resumeData -> {
+            if (resumeApplied) {
+                return;
+            }
+            resumeApplied = true;
+
             if (resumeData != null && resumeData.getCurrentPosition() > 0) {
-                // FIX 1: Lưu vị trí cần seek vào biến, KHÔNG seekTo ngay
                 pendingSeekPosition = resumeData.getCurrentPosition();
                 currentEpisode = resumeData.getCurrentEpisode();
 
@@ -150,8 +169,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
 
                 if (currentMovie.getEpisodeUrls() != null && !currentMovie.getEpisodeUrls().isEmpty()) {
                     loadEpisode(currentEpisode - 1);
-                    // KHÔNG gọi exoPlayer.seekTo() ở đây!
-                    // Việc seek sẽ được thực hiện trong setupPlayerListener() khi STATE_READY
                 }
             } else {
                 pendingSeekPosition = 0;
@@ -192,7 +209,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
                         Log.d(TAG, "Seeked to saved position successfully.");
                     }
 
-                    // Tự động play sau khi video sẵn sàng (và đã seek nếu cần)
                     if (!exoPlayer.isPlaying()) {
                         exoPlayer.play();
                     }
@@ -244,7 +260,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
                     userId
             );
 
-            // Reset pendingSeek khi chuyển tập chủ động (không cần seek tới vị trí cũ)
             pendingSeekPosition = 0;
             loadEpisode(currentEpisode - 1);
             Log.d(TAG, "Changed to episode " + currentEpisode);
@@ -273,7 +288,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
             long duration = exoPlayer.getDuration();
             Log.d(TAG, "Saving position on pause: " + currentPos + "ms");
 
-            viewModel.saveResumeData(
+            viewModel.saveResumeDataUrgent(
                     currentMovie.getMovieId(),
                     currentMovie.getTitle(),
                     currentPos,
@@ -289,7 +304,6 @@ public class VideoPlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // FIX 2: Chỉ play nếu player đang ở trạng thái sẵn sàng và chưa play
         if (exoPlayer != null
                 && exoPlayer.getPlaybackState() == Player.STATE_READY
                 && !exoPlayer.isPlaying()) {
@@ -304,7 +318,7 @@ public class VideoPlayerActivity extends AppCompatActivity {
             long currentPos = exoPlayer.getCurrentPosition();
             long duration = exoPlayer.getDuration();
 
-            viewModel.saveResumeData(
+            viewModel.saveResumeDataUrgent(
                     currentMovie.getMovieId(),
                     currentMovie.getTitle(),
                     currentPos,
@@ -318,3 +332,4 @@ public class VideoPlayerActivity extends AppCompatActivity {
         }
     }
 }
+

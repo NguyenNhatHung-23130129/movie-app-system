@@ -2,7 +2,6 @@ package com.example.movie_app.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +10,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,9 +25,12 @@ import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.HomeActivity;
 import com.example.movie_app.activities.MovieDetailActivity;
+import com.example.movie_app.activities.VideoPlayerActivity;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.adapter.CategoryAdapter;
 import com.example.movie_app.models.Category;
+import com.example.movie_app.models.Movie;
+import com.example.movie_app.models.MovieDetailResponse;
 import com.example.movie_app.models.MovieItem;
 import com.example.movie_app.utils.RecommendationEngine;
 import com.example.movie_app.viewmodel.MovieViewModel;
@@ -40,6 +44,7 @@ public class HomeFragment extends BaseFragment {
     private TextView btnViewAllNew, btnViewAllSeries, btnViewAllSingle, btnViewAllContinue, tvHeroTitle;
     private ImageView imgHeroPoster;
     private Button btnHeroDetail;
+    private Button btnHeroWatchNow;
 
     private MovieAdapter continueWatchingAdapter, newMoviesAdapter, seriesAdapter, singleMoviesAdapter, recommendedAdapter;
     private List<Category> categoryList = new ArrayList<>();
@@ -47,6 +52,8 @@ public class HomeFragment extends BaseFragment {
     private RecommendationEngine recommendationEngine;
     private LinearLayout layoutRecommendedSection;
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    private MovieItem currentHeroMovie;
 
     private boolean isFirstLoad = true;
 
@@ -108,6 +115,7 @@ public class HomeFragment extends BaseFragment {
         imgHeroPoster = view.findViewById(R.id.imgHeroPoster);
         tvHeroTitle = view.findViewById(R.id.tvHeroTitle);
         btnHeroDetail = view.findViewById(R.id.btnHeroDetail);
+        btnHeroWatchNow = view.findViewById(R.id.btnHeroWatchNow);
 
         continueWatchingAdapter = setupMovieRecyclerView(rvContinueWatching);
         newMoviesAdapter = setupMovieRecyclerView(rvNewMovies);
@@ -161,6 +169,8 @@ public class HomeFragment extends BaseFragment {
                     setupCategoryRecyclerView(rvGenresSingle, rvSingleMovies, singleMoviesAdapter, "single");
                 }
             });
+        } else {
+            Log.e("HOME_FRAGMENT", "Repository trả về null cho genres");
         }
     }
 
@@ -177,21 +187,24 @@ public class HomeFragment extends BaseFragment {
             if (movieList == null || movieList.isEmpty()) {
                 movieViewModel.refreshData();
             } else {
+                if (swipeRefreshLayout.isRefreshing()) {
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+
                 newMoviesAdapter.setMovieList(movieList);
                 newMoviesAdapter.notifyDataSetChanged();
 
                 continueWatchingAdapter.setMovieList(movieList);
                 continueWatchingAdapter.notifyDataSetChanged();
 
-                if (!movieList.isEmpty()) {
-                    updateHeroSection(movieList.get(0));
-                }
+                updateHeroSection(movieList.get(0));
             }
         });
     }
 
     private void updateHeroSection(MovieItem movie) {
         if (movie == null) return;
+        currentHeroMovie = movie;
 
         tvHeroTitle.setText(movie.getName());
         imgHeroPoster.post(() -> Glide.with(this).load(movie.getPosterUrl()).into(imgHeroPoster));
@@ -200,6 +213,71 @@ public class HomeFragment extends BaseFragment {
             Intent intent = new Intent(requireContext(), MovieDetailActivity.class);
             intent.putExtra("movie_slug", movie.getSlug());
             intent.putExtra("movie_image", movie.getPosterUrl());
+            startActivity(intent);
+        });
+
+        if (btnHeroWatchNow != null) {
+            btnHeroWatchNow.setOnClickListener(v -> watchHeroMovieNow(movie));
+        }
+    }
+
+    private void watchHeroMovieNow(MovieItem movie) {
+        if (movie == null || movie.getSlug() == null) return;
+
+        btnHeroWatchNow.setEnabled(false);
+        btnHeroWatchNow.setText("Đang tải...");
+
+        movieViewModel.getMovieDetail(movie.getSlug()).observe(getViewLifecycleOwner(), response -> {
+            btnHeroWatchNow.setEnabled(true);
+            btnHeroWatchNow.setText("▶ Xem ngay");
+
+            if (response == null || response.getMovie() == null) {
+                Toast.makeText(requireContext(), "Không tìm thấy thông tin phim!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            MovieDetailResponse.MovieDetail info = response.getMovie();
+
+            ArrayList<String> urls = new ArrayList<>();
+            ArrayList<String> names = new ArrayList<>();
+
+            if (response.getEpisodes() != null && !response.getEpisodes().isEmpty()) {
+                MovieDetailResponse.EpisodeServer server = response.getEpisodes().get(0);
+                if (server.getServerData() != null) {
+                    for (MovieDetailResponse.EpisodeData ep : server.getServerData()) {
+                        String link = ep.getLinkM3u8();
+                        if (link != null && !link.trim().isEmpty()) {
+                            urls.add(link);
+                            names.add(ep.getName() != null ? ep.getName() : "Tập " + urls.size());
+                        }
+                    }
+                }
+            }
+
+            if (urls.isEmpty()) {
+                Toast.makeText(requireContext(), "Phim này chưa có tập nào để phát!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            movieViewModel.saveToHistory(
+                    info.getSlug(),
+                    "USER_ID_TEST",
+                    info.getName(),
+                    movie.getPosterUrl()
+            );
+
+            Movie movieObj = new Movie();
+            movieObj.setMovieId(info.getSlug());
+            movieObj.setTitle(info.getName());
+            movieObj.setDescription(info.getContent());
+            movieObj.setPosterUrl(movie.getPosterUrl());
+            movieObj.setEpisodeUrls(urls);
+            movieObj.setEpisodeNames(names);
+            movieObj.setEpisodes(urls.size());
+            movieObj.setVideoUrl(urls.get(0));
+
+            Intent intent = new Intent(requireContext(), VideoPlayerActivity.class);
+            intent.putExtra("movie", movieObj);
             startActivity(intent);
         });
     }
