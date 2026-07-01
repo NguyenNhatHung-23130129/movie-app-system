@@ -20,7 +20,6 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.DashboardAnalyticsActivity;
-import com.example.movie_app.activities.HistoryActivity;
 import com.example.movie_app.activities.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -78,7 +77,6 @@ public class ProfileFragment extends Fragment {
         ImageView imgAvatar = view.findViewById(R.id.imgAvatar);
         RelativeLayout btnLogout = view.findViewById(R.id.btnLogout);
         RelativeLayout btnManageSoftware = view.findViewById(R.id.btnManageSoftware);
-        RelativeLayout btnFavoriteMovies = view.findViewById(R.id.btnFavoriteMovies);
         RelativeLayout btnNotificationSettings = view.findViewById(R.id.btnNotificationSettings);
         RelativeLayout btnEditProfile = view.findViewById(R.id.btnEditProfile);
 
@@ -103,10 +101,6 @@ public class ProfileFragment extends Fragment {
 
         if (tvUserName != null) tvUserName.setText(name);
         if (tvUserEmail != null) tvUserEmail.setText(email);
-        btnFavoriteMovies.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), HistoryActivity.class);
-            startActivity(intent);
-        });
         btnNotificationSettings.setOnClickListener(v -> {
             SettingsFragment settingsFragment = new SettingsFragment();
 
@@ -136,13 +130,14 @@ public class ProfileFragment extends Fragment {
 
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.clear();
-                editor.apply();
-
+                SharedPreferences preffs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+                preffs.edit().clear().apply();
                 FirebaseAuth.getInstance().signOut();
+
                 Toast.makeText(getContext(), "Đăng xuất thành công!", Toast.LENGTH_SHORT).show();
-                checkLoginStatusAndInflate();
+                Intent intent = new Intent(getActivity(), com.example.movie_app.activities.HomeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
             });
         }
     }

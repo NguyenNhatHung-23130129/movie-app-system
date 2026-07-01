@@ -1,7 +1,7 @@
 package com.example.movie_app.repository;
 
 import android.content.Context;
-
+import androidx.lifecycle.LiveData;
 import com.example.movie_app.dao.HistoryDao;
 import com.example.movie_app.database.AppDatabase;
 import com.example.movie_app.entity.WatchHistoryEntity;
@@ -22,7 +22,7 @@ public class HistoryRepository {
         executor.execute(() -> historyDao.insertHistory(history));
     }
 
-    public List<WatchHistoryEntity> getHistory(String userId) {
+    public LiveData<List<WatchHistoryEntity>> getHistory(String userId) {
         return historyDao.getHistoryByUserId(userId);
     }
 }

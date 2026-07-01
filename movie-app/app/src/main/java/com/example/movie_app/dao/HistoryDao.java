@@ -1,5 +1,6 @@
 package com.example.movie_app.dao;
 
+import androidx.lifecycle.LiveData; // Nhớ import cái này
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -13,5 +14,5 @@ public interface HistoryDao {
     void insertHistory(WatchHistoryEntity history);
 
     @Query("SELECT * FROM watch_history WHERE userId = :userId ORDER BY lastWatched DESC")
-    List<WatchHistoryEntity> getHistoryByUserId(String userId);
+    LiveData<List<WatchHistoryEntity>> getHistoryByUserId(String userId);
 }

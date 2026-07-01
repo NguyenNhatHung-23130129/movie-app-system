@@ -109,9 +109,7 @@ public class MovieDetailActivity extends AppCompatActivity {
 
     private void initFirebaseConfig() {
         try {
-            // Cấu hình trước khi dùng
             FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-            Log.d("FIREBASE_INIT", "Firebase đã khởi tạo an toàn.");
         } catch (Exception e) {
             Log.e("FIREBASE_INIT", "Lỗi: " + e.getMessage());
         }
@@ -205,7 +203,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         btnWatchNow.setOnClickListener(v -> {
             movieViewModel.saveToHistory(
                     info.getSlug(),
-                    "USER_ID_TEST",
+                    currentUserId,
                     info.getName(),
                     finalImageUrl
             );
@@ -224,7 +222,6 @@ public class MovieDetailActivity extends AppCompatActivity {
                 if (server.getServerData() != null) {
                     for (MovieDetailResponse.EpisodeData ep : server.getServerData()) {
                         String link = ep.getLinkM3u8();
-                        // FIX 3: Chỉ thêm URL hợp lệ, bỏ qua URL null/rỗng
                         if (link != null && !link.trim().isEmpty()) {
                             urls.add(link);
                             names.add(ep.getName() != null ? ep.getName() : "Tập " + (urls.size()));
@@ -337,15 +334,10 @@ public class MovieDetailActivity extends AppCompatActivity {
 
             newCommentRef.setValue(newComment).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-
                     newCommentRef.child("timestamp").setValue(ServerValue.TIMESTAMP);
-
-                    Toast.makeText(this, "Đã gửi bình luận!", Toast.LENGTH_SHORT).show();
                     edtCommentInput.setText("");
                     ratingBarInput.setRating(0);
 
-                } else {
-                    Toast.makeText(this, "Gửi thất bại!", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -354,7 +346,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     private void loadComments() {
 
         if (currentMovieId == null || currentMovieId.isEmpty()) {
-            Log.w("DEBUG_DB", "loadComments: currentMovieId rỗng, hủy bỏ.");
             return;
         }
         String dbUrl = "https://movie-app-system-d6696-default-rtdb.asia-southeast1.firebasedatabase.app/";
@@ -362,13 +353,9 @@ public class MovieDetailActivity extends AppCompatActivity {
                 .getReference("comments")
                 .child(currentMovieId);
 
-        Log.d("DEBUG_DB", "Đang tải bình luận từ: " + commentsRef.toString());
-
         commentsRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
             @Override
             public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                Log.d("DEBUG_DB", "Dữ liệu mới nhận được, số lượng: " + snapshot.getChildrenCount());
-
                 List<Comment> newList = new ArrayList<>();
                 for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
                     Comment comment = data.getValue(Comment.class);
@@ -381,13 +368,11 @@ public class MovieDetailActivity extends AppCompatActivity {
 
                 if (commentAdapter != null) {
                     commentAdapter.updateList(newList);
-                    Log.d("DEBUG_DB", "Đã gọi updateList với " + newList.size() + " bình luận.");
                 }
             }
 
             @Override
             public void onCancelled(@NonNull com.google.firebase.database.DatabaseError error) {
-                Log.e("DEBUG_DB", "Lỗi kết nối Firebase: " + error.getMessage());
             }
         });
     }
@@ -395,7 +380,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     private void checkFavoriteState(String slug) {
         if (slug == null || slug.isEmpty()) return;
 
-        // Truyền slug thay vì id để kiểm tra xem đã yêu thích chưa
         movieViewModel.isFavorite(currentUserId, slug).observe(this, isFav -> {
             this.isFavorite = (isFav != null && isFav);
             updateFavoriteUI();
@@ -405,8 +389,6 @@ public class MovieDetailActivity extends AppCompatActivity {
     private void toggleFavorite(MovieDetailResponse.MovieDetail info, String imageUrl) {
         if (info == null || info.getSlug() == null) return;
 
-        // THỦ THUẬT: Tạm thời gán Slug vào ID
-        // Việc này ép FavoriteEntity phải lưu Slug vào database, giống hệt như cách Lịch sử đang làm
         String originalId = info.getId();
         info.setId(info.getSlug());
 
@@ -418,51 +400,15 @@ public class MovieDetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
         }
 
-        // Trả lại ID gốc cho info ngay sau đó để không làm hỏng các chức năng khác
         info.setId(originalId);
     }
     private void updateFavoriteUI() {
         if (isFavorite) {
             imgAddToMyList.setImageResource(R.drawable.ic_done);
-            imgAddToMyList.setColorFilter(Color.parseColor("#4CAF50")); // Màu xanh
+            imgAddToMyList.setColorFilter(Color.parseColor("#4CAF50"));
         } else {
             imgAddToMyList.setImageResource(R.drawable.ic_add);
-            imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8")); // Màu xám gốc
+            imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8"));
         }
-    }
-    private void loadComments(String movieId) {
-        // Lọc trong nhánh "reviews", chỉ lấy những bình luận thuộc về movieId hiện tại
-        databaseReference.orderByChild("movieId").equalTo(movieId)
-                .addValueEventListener(new com.google.firebase.database.ValueEventListener() {
-                    @Override
-                    public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                        commentList.clear(); // Xóa list cũ trước khi nạp list mới
-
-                        for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
-                            // Đọc dữ liệu thô từ Firebase một cách an toàn
-                            String user = data.child("username").getValue(String.class);
-                            String content = data.child("content").getValue(String.class);
-                            Float rating = data.child("rating").getValue(Float.class);
-
-                            // Ép vào model Comment để đưa lên giao diện
-                            com.example.movie_app.models.Comment comment = new com.example.movie_app.models.Comment(
-                                    data.getKey(),
-                                    user != null ? user : "Ẩn danh",
-                                    "", // Avatar bỏ qua
-                                    content != null ? content : "",
-                                    "Vừa xong",
-                                    rating != null ? rating : 5f
-                            );
-                            commentList.add(comment);
-                        }
-                        // Báo cho Adapter biết dữ liệu đã thay đổi để vẽ lại màn hình
-                        commentAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
-                        Toast.makeText(MovieDetailActivity.this, "Lỗi tải bình luận!", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 }
