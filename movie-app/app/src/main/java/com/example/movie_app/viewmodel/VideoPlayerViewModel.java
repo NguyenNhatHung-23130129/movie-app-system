@@ -12,6 +12,8 @@ import com.example.movie_app.models.Movie;
 import com.example.movie_app.models.ResumeData;
 import com.example.movie_app.repository.VideoRepository;
 
+import java.util.List;
+
 public class VideoPlayerViewModel extends AndroidViewModel {
     private static final String TAG = "VideoPlayerViewModel";
 
@@ -93,5 +95,26 @@ public class VideoPlayerViewModel extends AndroidViewModel {
 
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
+    }
+    public LiveData<ResumeData> getLastWatchedMovie() {
+        MutableLiveData<ResumeData> result = new MutableLiveData<>();
+        LiveData<List<ResumeData>> source = videoRepository.getAllResumes();
+        source.observeForever(list -> {
+            if (list != null && !list.isEmpty()) {
+                result.postValue(list.get(0));
+            } else {
+                result.postValue(null);
+            }
+        });
+        return result;
+    }
+    public void saveResumeDataUrgent(String movieId, String movieTitle, long currentPosition,
+                                     long duration, int currentEpisode, String userId) {
+        Thread t = new Thread(() ->
+                videoRepository.saveResumeDataSync(movieId, movieTitle, currentPosition, duration, currentEpisode));
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException ignored) {}
     }
 }

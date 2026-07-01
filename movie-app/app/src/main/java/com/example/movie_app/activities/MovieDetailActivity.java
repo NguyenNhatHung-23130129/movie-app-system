@@ -218,7 +218,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             );
 
             Movie movie = new Movie();
-            movie.setMovieId(info.getId());
+            movie.setMovieId(info.getSlug());
             movie.setTitle(info.getName());
             movie.setDescription(info.getContent());
             movie.setPosterUrl(finalImageUrl);
