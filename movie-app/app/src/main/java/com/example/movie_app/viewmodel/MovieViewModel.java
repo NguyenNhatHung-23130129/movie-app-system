@@ -143,4 +143,16 @@ public class MovieViewModel extends AndroidViewModel {
     public LiveData<List<WatchHistoryEntity>> getHistory(String userId) {
         return historyRepository.getHistory(userId);
     }
+
+    public LiveData<Integer> getWatchedCount(String userId) {
+        return historyRepository.getWatchedCount(userId);
+    }
+
+    public LiveData<Long> getTotalWatchTime(String userId) {
+        return historyRepository.getTotalWatchTime(userId);
+    }
+
+    public LiveData<Integer> getFavoriteCount(String userId) {
+        return movieRepository.getFavoriteCount(userId);
+    }
 }

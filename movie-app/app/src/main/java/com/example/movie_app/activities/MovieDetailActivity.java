@@ -318,17 +318,10 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     private void setupCommentAction() {
-        // Lắng nghe sự kiện khi người dùng bấm nút trên bàn phím ảo
         edtCommentInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, android.view.KeyEvent event) {
-                // Ẩn bàn phím
                 hideKeyboard();
-
-                // Bỏ comment dòng dưới đây nếu bạn muốn khi bấm nút trên bàn phím
-                // thì app tự động thực hiện lệnh Gửi bình luận luôn:
-                // btnSendComment.performClick();
-
                 return true;
             }
         });
@@ -435,47 +428,12 @@ public class MovieDetailActivity extends AppCompatActivity {
             imgAddToMyList.setColorFilter(Color.parseColor("#E2E2E8"));
         }
     }
-    private void loadComments(String movieId) {
-        // Lọc trong nhánh "reviews", chỉ lấy những bình luận thuộc về movieId hiện tại
-        databaseReference.orderByChild("movieId").equalTo(movieId)
-                .addValueEventListener(new com.google.firebase.database.ValueEventListener() {
-                    @Override
-                    public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
-                        commentList.clear(); // Xóa list cũ trước khi nạp list mới
-
-                        for (com.google.firebase.database.DataSnapshot data : snapshot.getChildren()) {
-                            // Đọc dữ liệu thô từ Firebase một cách an toàn
-                            String user = data.child("username").getValue(String.class);
-                            String content = data.child("content").getValue(String.class);
-                            Float rating = data.child("rating").getValue(Float.class);
-
-                            // Ép vào model Comment để đưa lên giao diện
-                            com.example.movie_app.models.Comment comment = new com.example.movie_app.models.Comment(
-                                    data.getKey(),
-                                    user != null ? user : "Ẩn danh",
-                                    content != null ? content : "",
-                                    0, // Truyền một giá trị mặc định cho timestamp
-                                    rating != null ? (double) rating : 5.0
-                            );
-                            commentList.add(comment);
-                        }
-                        // Báo cho Adapter biết dữ liệu đã thay đổi để vẽ lại màn hình
-                        commentAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
-                        Toast.makeText(MovieDetailActivity.this, "Lỗi tải bình luận!", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
     private void hideKeyboard() {
         View view = this.getCurrentFocus();
         if (view != null) {
             android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-        // Bỏ focus khỏi ô nhập liệu
         if (edtCommentInput != null) {
             edtCommentInput.clearFocus();
         }

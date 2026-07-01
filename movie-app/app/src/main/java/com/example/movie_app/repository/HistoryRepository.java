@@ -25,4 +25,12 @@ public class HistoryRepository {
     public LiveData<List<WatchHistoryEntity>> getHistory(String userId) {
         return historyDao.getHistoryByUserId(userId);
     }
+
+    public LiveData<Integer> getWatchedCount(String userId) {
+        return historyDao.getWatchedCount(userId);
+    }
+
+    public LiveData<Long> getTotalWatchTime(String userId) {
+        return historyDao.getTotalWatchTime(userId);
+    }
 }

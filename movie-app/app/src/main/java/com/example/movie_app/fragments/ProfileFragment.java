@@ -21,6 +21,7 @@ import com.bumptech.glide.Glide;
 import com.example.movie_app.R;
 import com.example.movie_app.activities.DashboardAnalyticsActivity;
 import com.example.movie_app.activities.LoginActivity;
+import com.example.movie_app.viewmodel.MovieViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -28,6 +29,9 @@ public class ProfileFragment extends Fragment {
 
     private FrameLayout fragmentContainer;
     private LayoutInflater layoutInflater;
+
+    private MovieViewModel movieViewModel;
+    private TextView tvCountWatched, tvCountHours, tvCountFavorite;
 
     @Nullable
     @Override
@@ -79,6 +83,13 @@ public class ProfileFragment extends Fragment {
         RelativeLayout btnManageSoftware = view.findViewById(R.id.btnManageSoftware);
         RelativeLayout btnNotificationSettings = view.findViewById(R.id.btnNotificationSettings);
         RelativeLayout btnEditProfile = view.findViewById(R.id.btnEditProfile);
+
+        tvCountWatched = view.findViewById(R.id.tvCountWatched);
+        tvCountHours = view.findViewById(R.id.tvCountHours);
+        tvCountFavorite = view.findViewById(R.id.tvCountFavorite);
+
+        movieViewModel = new androidx.lifecycle.ViewModelProvider(this).get(MovieViewModel.class);
+        setupStatsObservers();
 
         SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
         String name = prefs.getString("USER_NAME", "Thành viên");
@@ -140,5 +151,31 @@ public class ProfileFragment extends Fragment {
                 startActivity(intent);
             });
         }
+    }
+
+    private void setupStatsObservers() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE);
+        String userId = prefs.getString("USER_ID", "GUEST");
+
+        if (userId.equals("GUEST")) return;
+
+        movieViewModel.getWatchedCount(userId).observe(getViewLifecycleOwner(), count -> {
+            if (tvCountWatched != null) {
+                tvCountWatched.setText(String.valueOf(count != null ? count : 0));
+            }
+        });
+
+        movieViewModel.getTotalWatchTime(userId).observe(getViewLifecycleOwner(), totalMillis -> {
+            if (tvCountHours != null) {
+                long hours = (totalMillis != null ? totalMillis : 0) / 3600000;
+                tvCountHours.setText(String.valueOf(hours));
+            }
+        });
+
+        movieViewModel.getFavoriteCount(userId).observe(getViewLifecycleOwner(), count -> {
+            if (tvCountFavorite != null) {
+                tvCountFavorite.setText(String.valueOf(count != null ? count : 0));
+            }
+        });
     }
 }
