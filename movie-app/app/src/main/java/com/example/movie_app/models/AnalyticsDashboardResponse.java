@@ -14,9 +14,7 @@ public class AnalyticsDashboardResponse {
     private List<ChartDataPoint> chartDataPoints;
     private List<MovieItem> trendingMovies;
     
-    // Thêm các trường mới cho thống kê phim
     private int totalMovies;
-    private List<CategoryStat> categoryStats;
 
     public String getGrowthRateText() {
         return growthRateText;
@@ -106,11 +104,5 @@ public class AnalyticsDashboardResponse {
         this.totalMovies = totalMovies;
     }
 
-    public List<CategoryStat> getCategoryStats() {
-        return categoryStats;
-    }
 
-    public void setCategoryStats(List<CategoryStat> categoryStats) {
-        this.categoryStats = categoryStats;
-    }
 }
