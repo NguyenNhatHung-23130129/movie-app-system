@@ -29,6 +29,7 @@ import com.example.movie_app.activities.MovieDetailActivity;
 import com.example.movie_app.activities.VideoPlayerActivity;
 import com.example.movie_app.adapter.MovieAdapter;
 import com.example.movie_app.adapter.CategoryAdapter;
+import com.example.movie_app.entity.WatchHistoryEntity;
 import com.example.movie_app.models.Category;
 import com.example.movie_app.models.Movie;
 import com.example.movie_app.models.MovieDetailResponse;
@@ -90,13 +91,17 @@ public class HomeFragment extends BaseFragment {
             layoutContinueWatchingSection.setVisibility(View.VISIBLE);
             movieViewModel.getHistory(currentUserId).observe(getViewLifecycleOwner(), historyList -> {
                 if (historyList != null && !historyList.isEmpty()) {
-                    List<MovieItem> historyMovies = new ArrayList<>();
-                    for (var history : historyList) {
-                        MovieItem item = new MovieItem(history.movieId, history.movieName, history.posterUrl);
-                        item.setSlug(history.movieId);
-                        historyMovies.add(item);
+                    java.util.LinkedHashMap<String, MovieItem> uniqueMovies = new java.util.LinkedHashMap<>();
+
+                    for (WatchHistoryEntity history : historyList) {
+                        if (!uniqueMovies.containsKey(history.movieId)) {
+                            MovieItem item = new MovieItem(history.movieId, history.movieName, history.posterUrl);
+                            item.setSlug(history.movieId);
+                            uniqueMovies.put(history.movieId, item);
+                        }
                     }
-                    continueWatchingAdapter.setMovieList(historyMovies);
+
+                    continueWatchingAdapter.setMovieList(new ArrayList<>(uniqueMovies.values()));
                     rvContinueWatching.setVisibility(View.VISIBLE);
                 } else {
                     rvContinueWatching.setVisibility(View.GONE);
