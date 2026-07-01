@@ -3,14 +3,18 @@ package com.example.movie_app.models;
 import com.google.gson.annotations.SerializedName;
 
 public class AdminUserDto {
-    @SerializedName("id")
+    @SerializedName("userId")
     private String id;
-    @SerializedName("name")
+    
+    @SerializedName("username")
     private String name;
+    
     @SerializedName("email")
     private String email;
+    
     @SerializedName("isLocked")
     private boolean isLocked;
+    
     @SerializedName("reportCount")
     private int reportCount;
 
