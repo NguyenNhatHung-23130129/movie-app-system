@@ -157,6 +157,15 @@ public class MovieDetailActivity extends AppCompatActivity {
         rvComments.setNestedScrollingEnabled(false);
         commentAdapter = new CommentAdapter(commentList);
         rvComments.setAdapter(commentAdapter);
+        rvComments.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    hideKeyboard();
+                }
+            }
+        });
     }
 
 
@@ -312,6 +321,20 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     private void setupCommentAction() {
+        // Lắng nghe sự kiện khi người dùng bấm nút trên bàn phím ảo
+        edtCommentInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, android.view.KeyEvent event) {
+                // Ẩn bàn phím
+                hideKeyboard();
+
+                // Bỏ comment dòng dưới đây nếu bạn muốn khi bấm nút trên bàn phím
+                // thì app tự động thực hiện lệnh Gửi bình luận luôn:
+                // btnSendComment.performClick();
+
+                return true;
+            }
+        });
         btnSendComment.setOnClickListener(v -> {
             String text = edtCommentInput.getText().toString().trim();
             float stars = ratingBarInput.getRating();
@@ -343,6 +366,7 @@ public class MovieDetailActivity extends AppCompatActivity {
                     Toast.makeText(this, "Đã gửi bình luận!", Toast.LENGTH_SHORT).show();
                     edtCommentInput.setText("");
                     ratingBarInput.setRating(0);
+                    hideKeyboard();
 
                 } else {
                     Toast.makeText(this, "Gửi thất bại!", Toast.LENGTH_SHORT).show();
@@ -448,10 +472,9 @@ public class MovieDetailActivity extends AppCompatActivity {
                             com.example.movie_app.models.Comment comment = new com.example.movie_app.models.Comment(
                                     data.getKey(),
                                     user != null ? user : "Ẩn danh",
-                                    "", // Avatar bỏ qua
                                     content != null ? content : "",
-                                    "Vừa xong",
-                                    rating != null ? rating : 5f
+                                    0, // Truyền một giá trị mặc định cho timestamp
+                                    rating != null ? (double) rating : 5.0
                             );
                             commentList.add(comment);
                         }
@@ -464,5 +487,16 @@ public class MovieDetailActivity extends AppCompatActivity {
                         Toast.makeText(MovieDetailActivity.this, "Lỗi tải bình luận!", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+        // Bỏ focus khỏi ô nhập liệu
+        if (edtCommentInput != null) {
+            edtCommentInput.clearFocus();
+        }
     }
 }
