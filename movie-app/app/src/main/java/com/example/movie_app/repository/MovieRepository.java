@@ -85,6 +85,23 @@ public class MovieRepository {
             });
         }
     }
+    public void addMovieWithSlug(MovieItem movie, OnCompleteListener<Void> listener) {
+        if (movie.getSlug() == null || movie.getSlug().isEmpty()) {
+            if (listener != null) listener.onComplete(null);
+            return;
+        }
+
+        DatabaseReference ref = FirebaseDatabase.getInstance(FIREBASE_URL).getReference("movies");
+        String nodeKey = movie.getSlug();
+        movie.setId(nodeKey);
+
+        ref.child(nodeKey).setValue(movie).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                new Thread(() -> movieDao.insert(movie)).start();
+            }
+            if (listener != null) listener.onComplete(task);
+        });
+    }
 
     public void updateMovie(MovieItem movie, OnCompleteListener<Void> listener) {
         if (movie.getId() == null || movie.getId().isEmpty()) return;

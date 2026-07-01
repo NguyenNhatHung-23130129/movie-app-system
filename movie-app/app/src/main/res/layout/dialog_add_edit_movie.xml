@@ -21,7 +21,6 @@
             android:letterSpacing="0.05"
             android:layout_marginBottom="24dp" />
 
-        <!-- Tên phim -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,7 +41,6 @@
             android:inputType="text"
             android:layout_marginBottom="16dp" />
 
-        <!-- Slug -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -50,18 +48,36 @@
             android:textColor="#8C8C8C"
             android:textSize="12sp"
             android:layout_marginBottom="8dp" />
-        <EditText
-            android:id="@+id/edt_movie_slug"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_edit_text"
-            android:paddingHorizontal="12dp"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:hint="ví dụ: tay-du-ky-1986"
-            android:textColorHint="#4B5563"
-            android:inputType="text"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/edt_movie_slug"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_edit_text"
+                android:paddingHorizontal="12dp"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:hint="ví dụ: tay-du-ky-1986"
+                android:textColorHint="#4B5563"
+                android:inputType="text"
+                android:layout_marginEnd="8dp" />
+
+            <Button
+                android:id="@+id/btn_fetch_api"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="Tra cứu"
+                android:textAllCaps="false"
+                android:backgroundTint="#E50914"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -122,6 +138,22 @@
                     android:layout_marginBottom="16dp" />
             </LinearLayout>
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trạng thái"
+            android:textColor="#8C8C8C"
+            android:textSize="12sp"
+            android:layout_marginBottom="8dp" />
+        <Spinner
+            android:id="@+id/spn_movie_status"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_edit_text"
+            android:popupBackground="#222224"
+            android:spinnerMode="dropdown"
+            android:layout_marginBottom="16dp" />
 
         <TextView
             android:layout_width="wrap_content"

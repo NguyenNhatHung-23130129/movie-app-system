@@ -81,8 +81,15 @@ public class AdminMovieAdapter extends RecyclerView.Adapter<AdminMovieAdapter.Ad
             }
             tvCategory.setText(movie.getYear() + " • " + categories);
 
-            // Cập nhật trạng thái hiển thị
-            tvStatus.setText("ĐÃ XUẤT BẢN"); 
+            // Hiển thị trạng thái thực tế
+            if ("draft".equalsIgnoreCase(movie.getStatus())) {
+                tvStatus.setText("BẢN NHÁP");
+                tvStatus.setBackgroundResource(R.drawable.bg_status_draft); // Giả định bạn có hoặc sẽ dùng màu xám
+            } else {
+                tvStatus.setText("ĐÃ XUẤT BẢN");
+                tvStatus.setBackgroundResource(R.drawable.bg_status_published);
+            }
+
             tvRating.setText("8.5");
 
             Glide.with(itemView.getContext())

@@ -6,6 +6,7 @@ public class Comment {
     private String contentComment;
     private long timestamp;
     private double rating;
+    private String movieId;
 
     public Comment() {}
 
@@ -18,8 +19,20 @@ public class Comment {
     }
 
     public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
     public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+
     public String getContentComment() { return contentComment; }
+    public void setContentComment(String contentComment) { this.contentComment = contentComment; }
+
     public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
     public double getRating() { return rating; }
+    public void setRating(double rating) { this.rating = rating; }
+
+    public String getMovieId() { return movieId; }
+    public void setMovieId(String movieId) { this.movieId = movieId; }
 }
