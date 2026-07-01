@@ -235,4 +235,8 @@ public class MovieRepository {
             favoriteDao.deleteFavorite(userId, movieId);
         });
     }
+
+    public LiveData<Integer> getFavoriteCount(String userId) {
+        return favoriteDao.getFavoriteCount(userId);
+    }
 }

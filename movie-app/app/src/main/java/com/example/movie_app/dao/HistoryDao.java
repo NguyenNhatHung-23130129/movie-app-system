@@ -15,4 +15,10 @@ public interface HistoryDao {
 
     @Query("SELECT * FROM watch_history WHERE userId = :userId ORDER BY lastWatched DESC")
     LiveData<List<WatchHistoryEntity>> getHistoryByUserId(String userId);
+
+    @Query("SELECT COUNT(DISTINCT movieId) FROM watch_history WHERE userId = :userId")
+    LiveData<Integer> getWatchedCount(String userId);
+
+    @Query("SELECT SUM(progress) FROM watch_history WHERE userId = :userId")
+    LiveData<Long> getTotalWatchTime(String userId);
 }
