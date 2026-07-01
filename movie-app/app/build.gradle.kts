@@ -103,5 +103,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
 
 }
