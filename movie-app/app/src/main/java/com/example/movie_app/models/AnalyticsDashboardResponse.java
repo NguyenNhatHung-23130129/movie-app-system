@@ -13,6 +13,8 @@ public class AnalyticsDashboardResponse {
     private int seriesPercentage;
     private List<ChartDataPoint> chartDataPoints;
     private List<MovieItem> trendingMovies;
+    
+    private int totalMovies;
 
     public String getGrowthRateText() {
         return growthRateText;
@@ -93,4 +95,14 @@ public class AnalyticsDashboardResponse {
     public void setTrendingMovies(List<MovieItem> trendingMovies) {
         this.trendingMovies = trendingMovies;
     }
+
+    public int getTotalMovies() {
+        return totalMovies;
+    }
+
+    public void setTotalMovies(int totalMovies) {
+        this.totalMovies = totalMovies;
+    }
+
+
 }
