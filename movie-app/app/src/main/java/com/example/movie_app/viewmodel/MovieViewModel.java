@@ -55,6 +55,9 @@ public class MovieViewModel extends AndroidViewModel {
     public void addMovie(MovieItem movie, OnCompleteListener<Void> listener) {
         movieRepository.addMovie(movie, listener);
     }
+    public void addMovieWithSlug(MovieItem movie, OnCompleteListener<Void> listener) {
+        movieRepository.addMovieWithSlug(movie, listener);
+    }
 
     public void updateMovie(MovieItem movie, OnCompleteListener<Void> listener) {
         movieRepository.updateMovie(movie, listener);

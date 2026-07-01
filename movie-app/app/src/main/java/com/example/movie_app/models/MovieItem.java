@@ -59,6 +59,10 @@ public class MovieItem {
     @PropertyName("type")
     private String type;
 
+    @SerializedName("status")
+    @PropertyName("status")
+    private String status = "published";
+
     @SerializedName("category")
     @PropertyName("category")
     private List<Category> category;
@@ -109,6 +113,9 @@ public class MovieItem {
 
     @PropertyName("type") public String getType() { return type; }
     @PropertyName("type") public void setType(String type) { this.type = type; }
+
+    @PropertyName("status") public String getStatus() { return status; }
+    @PropertyName("status") public void setStatus(String status) { this.status = status; }
 
     @PropertyName("category") public List<Category> getCategory() { return category; }
     @PropertyName("category") public void setCategory(List<Category> category) { this.category = category; }
