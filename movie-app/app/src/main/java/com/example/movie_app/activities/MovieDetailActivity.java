@@ -448,10 +448,9 @@ public class MovieDetailActivity extends AppCompatActivity {
                             com.example.movie_app.models.Comment comment = new com.example.movie_app.models.Comment(
                                     data.getKey(),
                                     user != null ? user : "Ẩn danh",
-                                    "", // Avatar bỏ qua
                                     content != null ? content : "",
-                                    "Vừa xong",
-                                    rating != null ? rating : 5f
+                                    0, // Truyền một giá trị mặc định cho timestamp
+                                    rating != null ? (double) rating : 5.0
                             );
                             commentList.add(comment);
                         }
