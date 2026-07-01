@@ -25,7 +25,6 @@ public class DashboardAnalyticsViewModel extends AndroidViewModel {
         super(application);
         repository = new AnalyticsRepository();
         
-        // Mỗi khi selectedFilterDays thay đổi, switchMap sẽ gọi repository để lấy dữ liệu mới
         analyticsData = Transformations.switchMap(selectedFilterDays, repository::getAnalyticsData);
     }
 
